@@ -362,6 +362,10 @@ private:
    std::vector<std::vector<float>> jet_lund_dR;
    std::vector<std::vector<float>> jet_lund_kT;
 
+   //Boosted LUND
+   std::vector<std::vector<float>> boosted_jet_lund_dR;
+   std::vector<std::vector<float>> boosted_jet_lund_kT;
+
 
 };
 
@@ -762,6 +766,10 @@ clusteringAnalyzerAll_slimmed::clusteringAnalyzerAll_slimmed(const edm::Paramete
    //LUND
    tree->Branch("jet_lund_dR", &jet_lund_dR);
    tree->Branch("jet_lund_kT", &jet_lund_kT);
+
+   //Boosted LUND
+   tree->Branch("boosted_jet_lund_dR", &boosted_jet_lund_dR);
+   tree->Branch("boosted_jet_lund_kT", &boosted_jet_lund_kT);
 
    if(includeAllBranches) // EXTRA tree branches to be included if needed
    {
@@ -3647,6 +3655,117 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {
         jet_lund_kT.push_back(thisJet_kT);
 
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////_Boosted LUND_////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//LUND clear vectors before looping over jets
+   boosted_jet_lund_dR.clear();
+   boosted_jet_lund_kT.clear();
+
+TVector3 totJetBeta = TVector3(tot_jet_px/tot_jet_E,tot_jet_py/tot_jet_E ,tot_jet_pz/tot_jet_E); //the total jets' lorentzs vector sum
+
+for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {   //loop through each fatjets
+        //std::cout<< "new jet start" <<std::endl;
+        //get PF constituents
+	std::vector<reco::LeafCandidate> Unboosted_particles;  //particles before boosting
+	std::vector<TLorentzVector> Boosted_particles_TLV;     //particles after boosting in TLV form
+        std::vector<fastjet::PseudoJet> Boosted_particles_fj;  //particles after boosting in fastjet form
+	double AK8_sf_total = 1.0;     // this scales jet/particle 4-vectors, compounds all scale factors
+	double AK8_JEC_corr_factor = 1.0;
+	if(doJEC)
+      {
+
+         // JECs are already applied in cfg with updateJetCollection, this is for getting the uncertainties 
+         //double AK8_JEC_uncertainty = jecUnc_AK8->getUncertainty(true);
+        double  AK8_JEC_uncertainty = getJECUncertaintyFromSources("AK8",  iJet->pt(), iJet->eta());
+
+         if (systematicType.find("_up") != std::string::npos)
+         {
+            AK8_JEC_corr_factor = 1 + AK8_JEC_uncertainty;
+         }
+         else if (systematicType.find("_down") != std::string::npos)
+         {
+            AK8_JEC_corr_factor = 1 - AK8_JEC_uncertainty;
+         }
+
+         AK8_JEC[nfatjets] = AK8_JEC_corr_factor;
+         AK8_sf_total*=AK8_JEC_corr_factor;
+
+      }   //will have to add JER later
+
+
+        for (unsigned int i = 0; i < iJet->numberOfDaughters(); ++i) {    //particles in the fatjet
+                const reco::Candidate* daughter = iJet->daughter(i);
+		const pat::PackedCandidate* candiJet = (pat::PackedCandidate*) daughter;
+		double puppiweight = candiJet->puppiWeight();
+		Unboosted_particles.push_back(LeafCandidate(iJet->daughter(i)->charge(),Particle::LorentzVector(AK8_sf_total*puppiweight*daughter->px(), AK8_sf_total*puppiweight*daughter->py(), AK8_sf_total*puppiweight*daughter->pz(), AK8_sf_total*puppiweight*daughter->energy())));
+                }
+	for(auto iC = Unboosted_particles.begin();iC != Unboosted_particles.end(); iC++)  //boost the particles in the fatjet
+   	{
+		TLorentzVector iC_(iC->px(),iC->py(),iC->pz(),iC->energy());
+      		iC_.Boost(-totJetBeta.X(),-totJetBeta.Y(),-totJetBeta.Z());
+		Boosted_particles_TLV.push_back( iC_ );      //save it in TLV form
+   	}
+
+	for(auto iP=Boosted_particles_TLV.begin();iP!=Boosted_particles_TLV.end();iP++ )  //save the TLV particles in fatjet form
+	{
+		Boosted_particles_fj.push_back( fastjet::PseudoJet(iP->Px(),iP->Py(),iP->Pz(),iP->E()   ) );
+	}
+
+        
+
+        if (Boosted_particles_fj.empty()) {
+                //edm::LogWarning("LundPlane") << "skipping jet: no PF constituents, Event number:" << eventnum;
+                continue;
+        }
+        //cluster consitituents with C/A (LUND requites C/A)
+        fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, 1.0); //R=1.0 but not sure if this is good radius
+        fastjet::ClusterSequence cs_jet(Boosted_particles_fj, jet_def);
+        std::vector<fastjet::PseudoJet> inclusive_jets = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)); //return a vector of jets sorted into decreasing energy with an energy cut of 0
+        //fastjet::PseudoJet fj_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)).at(0);
+        //std::cout<< "how many jets are in AK8 jet particle after CA clustering: " <<inclusive_jets.size() <<std::endl;
+
+        if (inclusive_jets.empty()) {
+                //edm::LogWarning("LundPlane") << "no clustered jets found from pF constituents";
+                continue;
+        }
+
+        fastjet::PseudoJet fj_jet =inclusive_jets.at(0);
+
+        if (!fj_jet.has_constituents()) {
+                //edm::LogWarning("LundPlane") << "clustered jet has no constituents";
+                continue;
+        }
+
+        //printing out the first CA jet (sorted into decrasing energy, therefore the largest E CA jet)
+        std::vector<fastjet::PseudoJet> constituents = fj_jet.constituents();
+        //std::cout << "in event " << eventnum << ", the largest energy CA jet has " << constituents.size() << "constituents" << std::endl;
+        //for (size_t i = 0; i < constituents.size(); ++i) {
+        //      const fastjet::PseudoJet& p = constituents[i];
+        //      std::cout << "constituent " << i << ": px = " << p.px() << ", py = " << p.py() << "y pz = " << p.pz() << ", E = " << p.E() << ", pt = " << p.pt() << ", eta = " << p.eta() << ", phi = " << p.phi_std() << std::endl;
+        //}
+
+	//Run LUND Generator
+        fastjet::contrib::LundGenerator lundGen;
+        std::vector<fastjet::contrib::LundDeclustering> lund_decomp = lundGen(fj_jet);
+
+        std::vector<float> thisJet_dR, thisJet_kT;
+
+        for (const auto& emission : lund_decomp) {
+                thisJet_dR.push_back(emission.Delta());
+                thisJet_kT.push_back(emission.kt());
+        }
+
+        //cout << "in event " << eventnum << ", lund dR:" << thisJet_dR.back() << ", lund kT:" << thisJet_kT.back() <<endl;
+
+        boosted_jet_lund_dR.push_back(thisJet_dR);
+        boosted_jet_lund_kT.push_back(thisJet_kT);
+
+}
+
+
    
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    ////////////////////////////////////////////////////////////_Clustering_///////////////////////////////////////////////////////////////////
@@ -3655,7 +3774,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {
 
    if(_verbose)std::cout << "before cluster" << std::endl;
    /////calculate COM frame boost////////////////////////////////////////////////////////////////////?????///////////////
-   TVector3 totJetBeta = TVector3(tot_jet_px/tot_jet_E,tot_jet_py/tot_jet_E ,tot_jet_pz/tot_jet_E);
+   //TVector3 totJetBeta = TVector3(tot_jet_px/tot_jet_E,tot_jet_py/tot_jet_E ,tot_jet_pz/tot_jet_E); //declared in boosted LUND section
 
 
    //////////boost all jet particles into MPP frame//////////////////////////////////////////////////////////////////////
@@ -3674,6 +3793,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {
    {
       candsBoostedPJ.push_back( fastjet::PseudoJet(iP->Px(),iP->Py(),iP->Pz(),iP->E()   ) );
    }
+
 
    ///////take all boosted particles in MPP frame and recluster, then sort these AK8 jets
    double R0 = 0.8;
