@@ -1,3 +1,4 @@
+<use name="fastjet-contrib"/>
 <use   name="CondCore/PluginSystem"/>
 <use   name="CondCore/DBOutputService"/>
 <use   name="DataFormats/JetReco"/>
