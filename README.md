@@ -9,3 +9,5 @@ voms-proxy-init --voms cms
 
 My CMSSW version is CMSSW_14_0_21
 to run an example cfg, do `cmsRun example_cfg.py`. Settings are different between Run3 and Run2 cfgs.
+
+Check out /uscms/home/hwchung/nobackup/Analysis/CMSSW_14_0_21/src/ to see the full code
