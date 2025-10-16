@@ -96,7 +96,7 @@ PrefiringRateSystematicUnctyECAL = cms.double(0.2),
 PrefiringRateSystematicUnctyMuon = cms.double(0.2)
 )
 
-process.selectionStudy_Et50 = cms.EDAnalyzer("clusteringAnalyzerAll_NsubJet",
+process.selectionStudy_Et50 = cms.EDAnalyzer("clusteringAnalyzer",
  runType = cms.string("TprimeTprime1800"), #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , etc.
  genPartCollection = cms.InputTag("prunedGenParticles"),
   genParticles = cms.InputTag("genParticles"),

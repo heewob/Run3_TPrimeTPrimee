@@ -115,9 +115,9 @@ typedef math::XYZVector Vector;
 using correction::CorrectionSet;
 using namespace LHAPDF;
 using namespace fastjet::contrib; //for Nsubjettiness
-class clusteringAnalyzerAll_NsubJet : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class clusteringAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-   explicit clusteringAnalyzerAll_NsubJet(const edm::ParameterSet&);
+   explicit clusteringAnalyzer(const edm::ParameterSet&);
 private:
 
    virtual void analyze(const edm::Event&, const edm::EventSetup&);
@@ -385,7 +385,7 @@ private:
 };
 
 //_constructor_
-clusteringAnalyzerAll_NsubJet::clusteringAnalyzerAll_NsubJet(const edm::ParameterSet& iConfig):
+clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
    path_ (iConfig.getParameter<edm::FileInPath>("BESTpath"))
 
 {
@@ -534,7 +534,7 @@ clusteringAnalyzerAll_NsubJet::clusteringAnalyzerAll_NsubJet(const edm::Paramete
 
    m_rho_token  = consumes<double>(edm::InputTag("fixedGridRhoAll", "", "RECO"));
    edm::Service<TFileService> fs;     
-   std::string Et_str = std::to_string(AK8_Et_cut); 
+   std::string Et_str = std::to_string(int(AK8_Et_cut)); 
    tree = fs->make<TTree>(  ("tree_"+systematicType+"_Et"+Et_str).c_str(), ("tree_"+systematicType+"_Et"+Et_str).c_str());
    TFile *bTagEff_file;
    TFile *jetVetoMap_file;
@@ -1061,7 +1061,7 @@ clusteringAnalyzerAll_NsubJet::clusteringAnalyzerAll_NsubJet(const edm::Paramete
 
 
 //recursively returns status-change copies of generated particles until you get to new decays
-const reco::Candidate* clusteringAnalyzerAll_NsubJet::parse_chain(const reco::Candidate* cand)
+const reco::Candidate* clusteringAnalyzer::parse_chain(const reco::Candidate* cand)
 {  
    for (unsigned int iii=0; iii<cand->numberOfDaughters(); iii++)
    {
@@ -1072,7 +1072,7 @@ const reco::Candidate* clusteringAnalyzerAll_NsubJet::parse_chain(const reco::Ca
 
 
 //// return back the JEC file for a given systematic, year, and jet type
-std::string clusteringAnalyzerAll_NsubJet::returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType)
+std::string clusteringAnalyzer::returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType)
 {
    std::string data_type = "MC";
    std::string jet_str  = "AK8PFPuppi";
@@ -1110,7 +1110,7 @@ std::string clusteringAnalyzerAll_NsubJet::returnJECFile(std::string year, std::
 }
 
 /// returns the JEC uncertainty scale factor (from a specific, reduced source) for a given jet with pt, eta
-double clusteringAnalyzerAll_NsubJet::getJECUncertaintyFromSources(std::string jet_type, double pt, double eta)
+double clusteringAnalyzer::getJECUncertaintyFromSources(std::string jet_type, double pt, double eta)
 {  
 
    if(_verbose)std::cout << "----------------------------- new jet --------------------------------- " << std::endl;
@@ -1156,7 +1156,7 @@ double clusteringAnalyzerAll_NsubJet::getJECUncertaintyFromSources(std::string j
 }  
 
 // return the JER scale factor for a given uncertainty source and jet eta
-bool clusteringAnalyzerAll_NsubJet::applyJERSource(std::string uncertainty_source, double eta)
+bool clusteringAnalyzer::applyJERSource(std::string uncertainty_source, double eta)
 {
    if((uncertainty_source == "JER_up") || (uncertainty_source == "JER_down"))return true; // all jets are corrected for the "total" JER uncertainty
    else if(  (uncertainty_source.find("JER_eta193") != std::string::npos) && (abs(eta) < 1.93  ))return true;
@@ -1165,7 +1165,7 @@ bool clusteringAnalyzerAll_NsubJet::applyJERSource(std::string uncertainty_sourc
 }
 
 // returns bool if jet (or more generally, object) is within the HEM region
-bool clusteringAnalyzerAll_NsubJet::isHEM(const float jet_eta, const float jet_phi)
+bool clusteringAnalyzer::isHEM(const float jet_eta, const float jet_phi)
 {
    if(year != "2018") return false; // HEM is only relevant for 2018
 
@@ -1178,7 +1178,7 @@ bool clusteringAnalyzerAll_NsubJet::isHEM(const float jet_eta, const float jet_p
 }
 
 // bool corresponding to if AK4 jet passes tight ID
-bool clusteringAnalyzerAll_NsubJet::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF,bool jetPUid, const float iJet_pt)
+bool clusteringAnalyzer::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF,bool jetPUid, const float iJet_pt)
 {
    if( (abs(eta) > 2.4)) return false;
 
@@ -1194,7 +1194,7 @@ bool clusteringAnalyzerAll_NsubJet::isgoodjet(const float eta, const float NHF,c
 
 }
 // checks AK8 jet (tight) ID
-bool clusteringAnalyzerAll_NsubJet::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
+bool clusteringAnalyzer::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
 {
    if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
    else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
@@ -1207,7 +1207,7 @@ bool clusteringAnalyzerAll_NsubJet::isgoodjet(const float eta, const float NHF,c
 
 }
 // calculates the MPP frame given a TLorentzVector of SJ particles
-double clusteringAnalyzerAll_NsubJet::calcMPP(TLorentzVector superJetTLV )  
+double clusteringAnalyzer::calcMPP(TLorentzVector superJetTLV )  
 {
    Vector jet_axis(superJetTLV.Px()/superJetTLV.P(),superJetTLV.Py()/superJetTLV.P(),superJetTLV.Pz()/superJetTLV.P());
    double min_pp = 99999999999999.;
@@ -1229,7 +1229,7 @@ double clusteringAnalyzerAll_NsubJet::calcMPP(TLorentzVector superJetTLV )
 
 
 // returns the top pt scale factor as detailed here - https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting#Run_1_strategy_Obsolete
-double clusteringAnalyzerAll_NsubJet::top_pt_SF(double top_pt)
+double clusteringAnalyzer::top_pt_SF(double top_pt)
 {
 
    if (top_pt > 500.) top_pt = 500.;
@@ -1238,7 +1238,7 @@ double clusteringAnalyzerAll_NsubJet::top_pt_SF(double top_pt)
    return exp(0.0615-0.0005*top_pt);  // this is the scale factor based on data aka data-NLO and data-NNLO weights
 }
 // tells you if a TLorentzVector is associated with a candidate jet (via delta R matching)
-bool clusteringAnalyzerAll_NsubJet::isMatchedtoSJ(std::vector<TLorentzVector> superJetTLVs, TLorentzVector candJet)
+bool clusteringAnalyzer::isMatchedtoSJ(std::vector<TLorentzVector> superJetTLVs, TLorentzVector candJet)
 {
    for(auto iJet = superJetTLVs.begin(); iJet!=superJetTLVs.end(); iJet++)
    {
@@ -1247,7 +1247,7 @@ bool clusteringAnalyzerAll_NsubJet::isMatchedtoSJ(std::vector<TLorentzVector> su
    return false;
 }
 // for QCD scale uncertainty
-double clusteringAnalyzerAll_NsubJet::calcAlphas(double q2) 
+double clusteringAnalyzer::calcAlphas(double q2) 
 { 
     double mZ = 91.2; //Z boson mass in the NNPDF31_nnlo_as_0118 docs (http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118/NNPDF31_nnlo_as_0118.info )
     double alphas_mZ = 0.118; //alpha_s evaluated at Z boson mass, based on the NNPDF31_nnlo_as_0118 docs (http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118/NNPDF31_nnlo_as_0118.info )
@@ -1256,7 +1256,7 @@ double clusteringAnalyzerAll_NsubJet::calcAlphas(double q2)
     return alphas_mZ / (1 + alphas_mZ * b0 * std::log(q2 / std::pow(mZ,2))); // alphas evolution
 }
 // for QCD factorization uncertainty
-double clusteringAnalyzerAll_NsubJet::calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn) 
+double clusteringAnalyzer::calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn) 
 {
     double k2;
     if ( up_or_dn ==  1 )
@@ -1276,7 +1276,7 @@ double clusteringAnalyzerAll_NsubJet::calcFactorizWeight(LHAPDF::PDF* pdf, doubl
     return weight;
 }
 
-double clusteringAnalyzerAll_NsubJet::calcRenormWeight(double q2, int up_or_dn, int nQCD) 
+double clusteringAnalyzer::calcRenormWeight(double q2, int up_or_dn, int nQCD) 
 { 
     if (nQCD == 0) //Time saving check since we will exponentiate by nQCD as the last step
         return 1;
@@ -1296,7 +1296,7 @@ double clusteringAnalyzerAll_NsubJet::calcRenormWeight(double q2, int up_or_dn, 
 }
 
 // does filling of the superjet variables to give the NN
-bool clusteringAnalyzerAll_NsubJet::fillSJVars(std::map<std::string, float> &treeVars, std::vector<fastjet::PseudoJet> iSJ, int nSuperJets )
+bool clusteringAnalyzer::fillSJVars(std::map<std::string, float> &treeVars, std::vector<fastjet::PseudoJet> iSJ, int nSuperJets )
 {
    bool testNewVars = true; // include new SJ vars to give to NN
 
@@ -2108,7 +2108,7 @@ bool clusteringAnalyzerAll_NsubJet::fillSJVars(std::map<std::string, float> &tre
 
 
 // main analyzer function: pre-select events, recluster superjets, calculate all variables from superjets
-void clusteringAnalyzerAll_NsubJet::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
    if(_verbose)std::cout << "-------- Beginning of Analyzer -------- " << std::endl;
@@ -4401,5 +4401,5 @@ if (L_parallel > 0.0) {
    if(_verbose)std::cout << " -----------------event end -----------------" << std::endl;
 }   
 
-DEFINE_FWK_MODULE(clusteringAnalyzerAll_NsubJet);
+DEFINE_FWK_MODULE(clusteringAnalyzer);
 //_bottom_
