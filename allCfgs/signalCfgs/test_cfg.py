@@ -20,6 +20,11 @@ options.register ('reportEvery',
                   VarParsing.VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.VarParsing.varType.int,          # string, int, or float
                   "print entry number every N entries")
+options.register ('ak8ETcut',
+                  50., # default value
+                  VarParsing.VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.VarParsing.varType.float,          # string, int, or float
+                  "cut on ET of AK8 jets considered for SJ reclustering")
 options.outputFile = 'john_test.root'
 options.inputFiles= 'file:0D0726A0-A612-8E4F-9CF0-C01C2DE4818A.root'
 options.maxEvents = 10
@@ -126,7 +131,7 @@ process.selectionStudy_Et50 = cms.EDAnalyzer("clusteringAnalyzer",
  genEventInfoTag=cms.InputTag("generator"),
  lheEventInfoTag=cms.InputTag("externalLHEProducer"),
  bits = cms.InputTag("TriggerResults", "", "HLT"),
- AK8_Et_cut = cms.double(50),
+ AK8_Et_cut = cms.double(options.ak8ETcut),
  triggers = cms.string("HLT_PFHT1050_v"),
  doPUID = cms.bool(True),
   doPDF = cms.bool(True)
