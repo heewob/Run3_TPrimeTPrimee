@@ -737,48 +737,6 @@ double clusteringAnalyzer::getJECUncertaintyFromSources(std::string jet_type, do
   return uncert;
 }  
 
-// returns bool if jet (or more generally, object) is within the HEM region
-bool clusteringAnalyzer::isHEM(const float jet_eta, const float jet_phi)
-{
-  if(year != "2018") return false; // HEM is only relevant for 2018
-
-  if( (jet_phi >  -1.57)&&( jet_phi < -0.87) )
-  {
-    if( (jet_eta > -3.0)&&(jet_eta < -1.3))return true;
-
-  }
-  return false;
-}
-
-// bool corresponding to if AK4 jet passes tight ID
-bool clusteringAnalyzer::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF,bool jetPUid, const float iJet_pt)
-{
-  if( (abs(eta) > 2.4)) return false;
-
-  // only apply to AK4 jets
-  // apply the MEDIUM PU jet id https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetIDUL
-  if( (!jetPUid) && (iJet_pt < 50.0)) return false;
-
-  if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
-  {
-    return false;
-  }
-  else{ return true;}
-
-}
-// checks AK8 jet (tight) ID
-bool clusteringAnalyzer::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
-{
-  if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
-  else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
-
-  if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
-  {
-    return false;
-  }
-  else{ return true;}
-
-}
 // calculates the MPP frame given a TLorentzVector of SJ particles
 double clusteringAnalyzer::calcMPP(TLorentzVector superJetTLV )  
 {
@@ -798,55 +756,6 @@ double clusteringAnalyzer::calcMPP(TLorentzVector superJetTLV )
     }
   }
   return min_boost;
-}
-
-
-// returns the top pt scale factor as detailed here - https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting#Run_1_strategy_Obsolete
-double clusteringAnalyzer::top_pt_SF(double top_pt)
-{
-
-  if (top_pt > 500.) top_pt = 500.;
-  //$SF(p_T)=e^{0.0615-0.0005\cdot p_T}$ for data/POWHEG+Pythia8
-  //return 0.103*exp(-0.0118*top_pt) -0.000134*top_pt+ 0.973;
-  return exp(0.0615-0.0005*top_pt);  // this is the scale factor based on data aka data-NLO and data-NNLO weights
-}
-// tells you if a TLorentzVector is associated with a candidate jet (via delta R matching)
-bool clusteringAnalyzer::isMatchedtoSJ(std::vector<TLorentzVector> superJetTLVs, TLorentzVector candJet)
-{
-  for(auto iJet = superJetTLVs.begin(); iJet!=superJetTLVs.end(); iJet++)
-  {
-    if( abs(candJet.Angle(iJet->Vect())) < 0.001) return true;  
-  }
-  return false;
-}
-// for QCD scale uncertainty
-double clusteringAnalyzer::calcAlphas(double q2) 
-{ 
-  double mZ = 91.2; //Z boson mass in the NNPDF31_nnlo_as_0118 docs (http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118/NNPDF31_nnlo_as_0118.info )
-  double alphas_mZ = 0.118; //alpha_s evaluated at Z boson mass, based on the NNPDF31_nnlo_as_0118 docs (http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118/NNPDF31_nnlo_as_0118.info )
-  int nFlavors = 5; //effective number of flavors
-  double b0 = (33 - 2.0 * nFlavors) / (12 * M_PI); 
-  return alphas_mZ / (1 + alphas_mZ * b0 * std::log(q2 / std::pow(mZ,2))); // alphas evolution
-}
-// for QCD factorization uncertainty
-double clusteringAnalyzer::calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn) 
-{
-  double k2;
-  if ( up_or_dn ==  1 )
-    k2 = 4; // 2*q ==> 4*q2
-  else if ( up_or_dn == -1 )
-    k2 = 0.25; // 0.5*q ==> 0.25*q2
-  else {
-    throw std::invalid_argument("up_or_dn must be -1 or 1");
-  }
-
-  double pdf1old = pdf->xfxQ2(id1,x1,q2);
-  double pdf2old = pdf->xfxQ2(id2,x2,q2);
-  double pdf1new = pdf->xfxQ2(id1,x1,k2*q2);
-  double pdf2new = pdf->xfxQ2(id2,x2,k2*q2);
-  double weight = (pdf1new * pdf2new) / (pdf1old * pdf2old);
-
-  return weight;
 }
 
 double clusteringAnalyzer::calcRenormWeight(double q2, int up_or_dn, int nQCD) 
