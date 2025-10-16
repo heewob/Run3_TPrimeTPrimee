@@ -1,12 +1,11 @@
 <use name="fastjet-contrib"/>
-<use   name="CondCore/PluginSystem"/>
-<use   name="CondCore/DBOutputService"/>
-<use   name="DataFormats/JetReco"/>
-<use   name="DataFormats/METReco"/>
-<use   name="FWCore/Utilities"/>
-<use   name="JetMETCorrections/Algorithms"/>
-<use   name="JetMETCorrections/Objects"/>
-<use   name="JetMETCorrections/Modules"/>
+<use name="CondCore/DBOutputService"/>
+<use name="DataFormats/JetReco"/>
+<use name="DataFormats/METReco"/>
+<use name="FWCore/Utilities"/>
+<use name="JetMETCorrections/Algorithms"/>
+<use name="JetMETCorrections/Objects"/>
+<use name="JetMETCorrections/Modules"/>
 <use name="FWCore/Framework"/>
 <use name="FWCore/PluginManager"/>
 <use name="FWCore/ParameterSet"/>
@@ -17,7 +16,6 @@
 <use name="PhysicsTools/TensorFlow"/>
 <use name="ROOT"/>
 <use name="AnalysisDataFormats/TopObjects"/>
-<use name="ElectroWeakAnalysis/Utilities"/>
 <use name="clhep"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="correctionlib"/>
@@ -26,9 +24,7 @@
 <use name="PhysicsTools/Heppy"/>
 <use name="lhapdf"/>
 <use name="rootmath"/>
-<use name="TreeMaker/Reflex"/>
 <use   name="RecoParticleFlow/PFProducer"/>
-<use name="SimDataFormats/GeneratorProducts"/>
 <Flags LDFLAGS="`correction config --cflags --ldflags --rpath`"/>
 <flags EDM_PLUGIN="1"/>
 

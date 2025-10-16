@@ -223,7 +223,7 @@ genPartFilter_TPrime::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    //int chi_pdgid = 9936662;
    //int chi_pdgid = 8000001;
    int Tprime_pdgid = 6000006;
-   int nSuu = 0;
+   //int nSuu = 0;
    int nChi = 0;
    int nW   = 0;
    int ntop = 0;
