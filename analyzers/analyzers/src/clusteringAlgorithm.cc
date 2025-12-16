@@ -6,6 +6,7 @@
 
 //_top_
 #include "clusteringAlgorithm.h"
+#include "EnergyFractions.h"
 
 using namespace reco;
 using namespace correction;
@@ -413,9 +414,14 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_lund_dR", &jet_lund_dR);
   tree->Branch("jet_lund_kT", &jet_lund_kT);
 
-  //Boosted LUND
   tree->Branch("boosted_jet_lund_dR", &boosted_jet_lund_dR);
   tree->Branch("boosted_jet_lund_kT", &boosted_jet_lund_kT);
+
+  tree->Branch("boostedSJ1_lund_dR", &boostedSJ1_lund_dR);
+  tree->Branch("boostedSJ1_lund_kT", &boostedSJ1_lund_kT);
+
+  tree->Branch("boostedSJ2_lund_dR", &boostedSJ2_lund_dR);
+  tree->Branch("boostedSJ2_lund_kT", &boostedSJ2_lund_kT);
 
   //jet distribution
   tree->Branch("L_parallel", &L_parallel, "L_parallel/D");
@@ -434,6 +440,80 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("tau3COM", &tau3COM_);
   tree->Branch("tau21COM", &tau21COM_);
   tree->Branch("tau32COM", &tau32COM_);
+
+  //SJCOM CA4 jet infos (Nsubjettiness, mass, energy fraction, multiplcity...)
+  tree->Branch("tau1_SJ1", &tau1_SJ1_);
+  tree->Branch("tau2_SJ1", &tau2_SJ1_);
+  tree->Branch("tau3_SJ1", &tau3_SJ1_);
+  tree->Branch("tau21_SJ1", &tau21_SJ1_);
+  tree->Branch("tau32_SJ1", &tau32_SJ1_);
+  tree->Branch("CA8_mass_SJ1", &CA8_mass_SJ1_);
+  tree->Branch("CA8_constituents_SJ1", &CA8_constituents_SJ1_);
+  tree->Branch("totalE_SJ1", &totalE_SJ1_);
+  tree->Branch("totalMultiplicity_SJ1", &totalMultiplicity_SJ1_);
+  tree->Branch("chargedHadronEnergy_SJ1", &chargedHadronEnergy_SJ1_);
+  tree->Branch("neutralHadronEnergy_SJ1", &neutralHadronEnergy_SJ1_);
+  tree->Branch("chargedEmEnergy_SJ1", &chargedEmEnergy_SJ1_);
+  tree->Branch("neutralEmEnergy_SJ1", &neutralEmEnergy_SJ1_);
+  tree->Branch("photonEnergy_SJ1", &photonEnergy_SJ1_);
+  tree->Branch("electronEnergy_SJ1", &electronEnergy_SJ1_);
+  tree->Branch("muonEnergy_SJ1", &muonEnergy_SJ1_);
+  tree->Branch("chargedMuEnergy_SJ1", &chargedMuEnergy_SJ1_);
+  tree->Branch("chargedMultiplicity_SJ1", &chargedMultiplicity_SJ1_);
+  tree->Branch("neutralMultiplicity_SJ1", &neutralMultiplicity_SJ1_);
+  tree->Branch("HadronMultiplicity_SJ1", &HadronMultiplicity_SJ1_);
+  tree->Branch("chargedHadronMultiplicity_SJ1", &chargedHadronMultiplicity_SJ1_);
+  tree->Branch("neutralHadronMultiplicity_SJ1", &neutralHadronMultiplicity_SJ1_);
+  tree->Branch("EmMultiplicity_SJ1", &EmMultiplicity_SJ1_);
+  tree->Branch("chargedEmMultiplicity_SJ1", &chargedEmMultiplicity_SJ1_);
+  tree->Branch("neutralEmMultiplicity_SJ1", &neutralEmMultiplicity_SJ1_);
+  tree->Branch("photonMultiplicity_SJ1", &photonMultiplicity_SJ1_);
+  tree->Branch("electronMultiplicity_SJ1", &electronMultiplicity_SJ1_);
+  tree->Branch("muonMultiplicity_SJ1", &muonMultiplicity_SJ1_);
+  tree->Branch("EnergyFractionHadronic_SJ1", &EnergyFractionHadronic_SJ1_);
+  tree->Branch("EnergyFractionEm_SJ1", &EnergyFractionEm_SJ1_);
+  tree->Branch("EnergyFractionNeutralHadronic_SJ1", &EnergyFractionNeutralHadronic_SJ1_);
+  tree->Branch("EnergyFractionChargedHadronic_SJ1", &EnergyFractionChargedHadronic_SJ1_);
+  tree->Branch("EnergyFractionNeutralEm_SJ1", &EnergyFractionNeutralEm_SJ1_);
+  tree->Branch("EnergyFractionChargedEm_SJ1", &EnergyFractionChargedEm_SJ1_);
+  tree->Branch("EnergyFractionMuon_SJ1", &EnergyFractionMuon_SJ1_);
+
+  tree->Branch("tau1_SJ2", &tau1_SJ2_);
+  tree->Branch("tau2_SJ2", &tau2_SJ2_);
+  tree->Branch("tau3_SJ2", &tau3_SJ2_);
+  tree->Branch("tau21_SJ2", &tau21_SJ2_);
+  tree->Branch("tau32_SJ2", &tau32_SJ2_);
+  tree->Branch("CA8_mass_SJ2", &CA8_mass_SJ2_);
+  tree->Branch("CA8_constituents_SJ2", &CA8_constituents_SJ2_);
+  tree->Branch("totalE_SJ2", &totalE_SJ2_);
+  tree->Branch("totalMultiplicity_SJ2", &totalMultiplicity_SJ2_);
+  tree->Branch("chargedHadronEnergy_SJ2", &chargedHadronEnergy_SJ2_);
+  tree->Branch("neutralHadronEnergy_SJ2", &neutralHadronEnergy_SJ2_);
+  tree->Branch("chargedEmEnergy_SJ2", &chargedEmEnergy_SJ2_);
+  tree->Branch("neutralEmEnergy_SJ2", &neutralEmEnergy_SJ2_);
+  tree->Branch("photonEnergy_SJ2", &photonEnergy_SJ2_);
+  tree->Branch("electronEnergy_SJ2", &electronEnergy_SJ2_);
+  tree->Branch("muonEnergy_SJ2", &muonEnergy_SJ2_);
+  tree->Branch("chargedMuEnergy_SJ2", &chargedMuEnergy_SJ2_);
+  tree->Branch("chargedMultiplicity_SJ2", &chargedMultiplicity_SJ2_);
+  tree->Branch("neutralMultiplicity_SJ2", &neutralMultiplicity_SJ2_);
+  tree->Branch("HadronMultiplicity_SJ2", &HadronMultiplicity_SJ2_);
+  tree->Branch("chargedHadronMultiplicity_SJ2", &chargedHadronMultiplicity_SJ2_);
+  tree->Branch("neutralHadronMultiplicity_SJ2", &neutralHadronMultiplicity_SJ2_);
+  tree->Branch("EmMultiplicity_SJ2", &EmMultiplicity_SJ2_);
+  tree->Branch("chargedEmMultiplicity_SJ2", &chargedEmMultiplicity_SJ2_);
+  tree->Branch("neutralEmMultiplicity_SJ2", &neutralEmMultiplicity_SJ2_);
+  tree->Branch("photonMultiplicity_SJ2", &photonMultiplicity_SJ2_);
+  tree->Branch("electronMultiplicity_SJ2", &electronMultiplicity_SJ2_);
+  tree->Branch("muonMultiplicity_SJ2", &muonMultiplicity_SJ2_);
+  tree->Branch("EnergyFractionHadronic_SJ2", &EnergyFractionHadronic_SJ2_);
+  tree->Branch("EnergyFractionEm_SJ2", &EnergyFractionEm_SJ2_);
+  tree->Branch("EnergyFractionNeutralHadronic_SJ2", &EnergyFractionNeutralHadronic_SJ2_);
+  tree->Branch("EnergyFractionChargedHadronic_SJ2", &EnergyFractionChargedHadronic_SJ2_);
+  tree->Branch("EnergyFractionNeutralEm_SJ2", &EnergyFractionNeutralEm_SJ2_);
+  tree->Branch("EnergyFractionChargedEm_SJ2", &EnergyFractionChargedEm_SJ2_);
+  tree->Branch("EnergyFractionMuon_SJ2", &EnergyFractionMuon_SJ2_);
+
 
   if(includeAllBranches) // EXTRA tree branches to be included if needed
   {
@@ -2350,6 +2430,8 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   std::vector<fastjet::PseudoJet> superJetTwo;       //jets for dot product #cos(theta) < 0
   std::vector<TLorentzVector> superJetOneLV;        //workaround for weird fastjet bug
   std::vector<TLorentzVector> superJetTwoLV;        //workaround for weird fastjet bug
+  std::vector<int> superJetOneIndex;
+  std::vector<int> superJetTwoIndex;
 
   std::vector<TLorentzVector> selectedAK8_TLV;
   edm::Handle<std::vector<pat::Jet> > fatJets;
@@ -2378,6 +2460,7 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   //diAK8Jet_mass
   double tot_jet_px=0,tot_jet_py=0,tot_jet_pz=0, tot_jet_E=0;
 
+  std::vector<float> puppi_list;
 
   // loop over AK8 jets, save information for event selection, grab particles to create superjets
   for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)    
@@ -2537,14 +2620,16 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     jet_eta[nfatjets] = corrJet.eta();
     jet_mass[nfatjets] = corrJet.mass();
 
-
     // save selected AK8 jet particles for use in calculating the thrust axis
     for (unsigned int iii=0; iii<iJet->numberOfDaughters();iii++)   // get all jet particles
     {
       const reco::Candidate* iJ = iJet->daughter(iii);
       const pat::PackedCandidate* candJetbegin = (pat::PackedCandidate*) iJ;
       double puppiweight = candJetbegin->puppiWeight();
-      candsUnboosted.push_back(LeafCandidate(iJet->daughter(iii)->charge(), Particle::LorentzVector(AK8_sf_total*puppiweight*iJ->px(), AK8_sf_total*puppiweight*iJ->py(), AK8_sf_total*puppiweight*iJ->pz(), AK8_sf_total*puppiweight*iJ->energy())));
+      candsUnboosted.push_back(LeafCandidate(iJ->charge(), Particle::LorentzVector(AK8_sf_total*puppiweight*iJ->px(), AK8_sf_total*puppiweight*iJ->py(), AK8_sf_total*puppiweight*iJ->pz(), AK8_sf_total*puppiweight*iJ->energy()), iJ->vertex(), iJ->pdgId(), iJ->status()));   //tag pdgId
+      puppi_list.push_back(puppiweight);
+      //std::cout<< "puppiweight = " << puppiweight << std::endl;
+      //std::cout << "pdgid = " << iJet->daughter(iii)->pdgId() << std::endl;
       tot_jet_px+=AK8_sf_total*puppiweight*candJetbegin->px();tot_jet_py+=AK8_sf_total*puppiweight*candJetbegin->py();tot_jet_pz+=AK8_sf_total*puppiweight*candJetbegin->pz();tot_jet_E+=AK8_sf_total*puppiweight*candJetbegin->energy();
     }
     if(nfatjets < 4)
@@ -3356,7 +3441,7 @@ if(_verbose)std::cout << "before cluster" << std::endl;
 //////////boost all jet particles into MPP frame//////////////////////////////////////////////////////////////////////
 std::vector<TLorentzVector> candsBoostedTLV_;
 double pxCOM = 0,pyCOM=0,pzCOM=0;
-for(auto iC = candsUnboosted.begin();iC != candsUnboosted.end(); iC++)
+for(auto iC = candsUnboosted.begin();iC != candsUnboosted.end(); iC++)    //tag pdgId, keeping same order so far 
 {
   TLorentzVector iC_(iC->px(),iC->py(),iC->pz(),iC->energy());
   iC_.Boost(-totJetBeta.X(),-totJetBeta.Y(),-totJetBeta.Z());
@@ -3365,9 +3450,14 @@ for(auto iC = candsUnboosted.begin();iC != candsUnboosted.end(); iC++)
 
 }
 std::vector<fastjet::PseudoJet> candsBoostedPJ;
+int index = 0;
 for(auto iP=candsBoostedTLV_.begin();iP!=candsBoostedTLV_.end();iP++ )
 {
   candsBoostedPJ.push_back( fastjet::PseudoJet(iP->Px(),iP->Py(),iP->Pz(),iP->E()   ) );
+  //set the user index here, berfore this the candUnBoosted and candBoostedTLV maintained the order so far
+  candsBoostedPJ.back().set_user_index(index);  //tag pdgId, apply index here
+  //std::cout<< "initial indexing: index = " << index << " , pdgid = " << candsUnboosted.at(index).pdgId() << " , energy = " << candsUnboosted.at(index).energy() <<std::endl; 
+  index++;
 }
 
 
@@ -3379,7 +3469,26 @@ fastjet::JetDefinition jet_def0(fastjet::cambridge_algorithm, R0);
 fastjet::ClusterSequence cs_jet0(candsBoostedPJ, jet_def0); 
 
 // shedding particles happens here -> can change this energy threshold, just changed it from 50. 
-std::vector<fastjet::PseudoJet> jetsFJ_jet0 = fastjet::sorted_by_E(cs_jet0.inclusive_jets(0.));//changed inclusive jet pt cut from 10 to 0
+std::vector<fastjet::PseudoJet> jetsFJ_jet0 = fastjet::sorted_by_E(cs_jet0.inclusive_jets(0.));//changed inclusive jet pt cut from 10 to 0   //tag pdgId, reclustered particles with pdgId tagging
+
+//test user index
+/*
+int jet_index = 0;
+for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)
+{   
+  std::cout << "jet index = " <<jet_index<< std::endl;
+  if (iJet->constituents().size() > 0)
+  {
+    for(auto iDaughter = iJet->constituents().begin(); iDaughter != iJet->constituents().end(); iDaughter++)
+    {
+	    std::cout << "index = " << iDaughter->user_index() << " , pdgid = " << candsUnboosted[iDaughter->user_index()].pdgId() <<std::endl;
+    }
+  }
+  jet_index++;
+}
+*/
+
+
 double MPP_COM2_px = 0,MPP_COM2_py=0,MPP_COM2_pz =0,MPP_COM2_E = 0;
 int counter = 0;
 int nReclustered_CA8 = 0;
@@ -3561,19 +3670,32 @@ for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)
   {
     for(auto iJ = iJet->constituents().begin(); iJ != iJet->constituents().end(); iJ++)
     {  
-      if     (SJMatch==1)superJetOneLV.push_back(TLorentzVector(iJ->px(),iJ->py(),iJ->pz(),iJ->E()));
-      else if(SJMatch==2)superJetTwoLV.push_back(TLorentzVector(iJ->px(),iJ->py(),iJ->pz(),iJ->E()));
+      if     (SJMatch==1) {
+	      superJetOneLV.push_back(TLorentzVector(iJ->px(),iJ->py(),iJ->pz(),iJ->E()));
+	      superJetOneIndex.push_back(iJ->user_index());   //tag pdgId
+      }
+      else if(SJMatch==2) {
+	      superJetTwoLV.push_back(TLorentzVector(iJ->px(),iJ->py(),iJ->pz(),iJ->E()));
+	      superJetTwoIndex.push_back(iJ->user_index());
+      }
     }
   }        
 }
 
+int superJetOneCount = 0;   //tag pdgId, use this to set user index on superjet particles
+int superJetTwoCount = 0;  
+
 for(auto iPart = superJetOneLV.begin(); iPart != superJetOneLV.end(); iPart++)
 {
   superJetOne.push_back(fastjet::PseudoJet(iPart->Px(),iPart->Py(),iPart->Pz(),iPart->E()));
+  superJetOne.back().set_user_index(superJetOneIndex[superJetOneCount]);
+  superJetOneCount++;
 }
 for(auto iPart = superJetTwoLV.begin(); iPart != superJetTwoLV.end(); iPart++)
 {
   superJetTwo.push_back(fastjet::PseudoJet(iPart->Px(),iPart->Py(),iPart->Pz(),iPart->E()));
+  superJetTwo.back().set_user_index(superJetTwoIndex[superJetTwoCount]);
+  superJetTwoCount++;
 }
 
 
@@ -3594,6 +3716,19 @@ nSuperJets = 0;
 tot_nAK4_70 = 0; 
 tot_nAK4_50 = 0;
 tot_mpp_AK4 = 0;
+
+//define boostedSJ Lund and Nsubjettiness
+boostedSJ1_lund_dR.clear(); boostedSJ1_lund_kT.clear();
+boostedSJ2_lund_dR.clear(); boostedSJ2_lund_kT.clear();
+
+tau1_SJ1_.clear(); tau2_SJ1_.clear(); tau3_SJ1_.clear(); tau21_SJ1_.clear(); tau32_SJ1_.clear(); CA8_mass_SJ1_.clear(); CA8_constituents_SJ1_.clear();
+
+totalE_SJ1_.clear(), totalMultiplicity_SJ1_.clear(), chargedHadronEnergy_SJ1_.clear(), neutralHadronEnergy_SJ1_.clear(), chargedEmEnergy_SJ1_.clear(), neutralEmEnergy_SJ1_.clear(), photonEnergy_SJ1_.clear(), electronEnergy_SJ1_.clear(), muonEnergy_SJ1_.clear(), chargedMuEnergy_SJ1_.clear(), chargedMultiplicity_SJ1_.clear(), neutralMultiplicity_SJ1_.clear(), HadronMultiplicity_SJ1_.clear(), chargedHadronMultiplicity_SJ1_.clear(), neutralHadronMultiplicity_SJ1_.clear(), EmMultiplicity_SJ1_.clear(), chargedEmMultiplicity_SJ1_.clear(), neutralEmMultiplicity_SJ1_.clear(), photonMultiplicity_SJ1_.clear(), electronMultiplicity_SJ1_.clear(), muonMultiplicity_SJ1_.clear(), EnergyFractionHadronic_SJ1_.clear(), EnergyFractionEm_SJ1_.clear(), EnergyFractionNeutralHadronic_SJ1_.clear(), EnergyFractionChargedHadronic_SJ1_.clear(), EnergyFractionNeutralEm_SJ1_.clear(), EnergyFractionChargedEm_SJ1_.clear(), EnergyFractionMuon_SJ1_.clear();
+
+tau1_SJ2_.clear(); tau2_SJ2_.clear(); tau3_SJ2_.clear(); tau21_SJ2_.clear(); tau32_SJ2_.clear(); CA8_mass_SJ2_.clear(); CA8_constituents_SJ2_.clear();
+
+totalE_SJ2_.clear(), totalMultiplicity_SJ2_.clear(), chargedHadronEnergy_SJ2_.clear(), neutralHadronEnergy_SJ2_.clear(), chargedEmEnergy_SJ2_.clear(), neutralEmEnergy_SJ2_.clear(), photonEnergy_SJ2_.clear(), electronEnergy_SJ2_.clear(), muonEnergy_SJ2_.clear(), chargedMuEnergy_SJ2_.clear(), chargedMultiplicity_SJ2_.clear(), neutralMultiplicity_SJ2_.clear(), HadronMultiplicity_SJ2_.clear(), chargedHadronMultiplicity_SJ2_.clear(), neutralHadronMultiplicity_SJ2_.clear(), EmMultiplicity_SJ2_.clear(), chargedEmMultiplicity_SJ2_.clear(), neutralEmMultiplicity_SJ2_.clear(), photonMultiplicity_SJ2_.clear(), electronMultiplicity_SJ2_.clear(), muonMultiplicity_SJ2_.clear(), EnergyFractionHadronic_SJ2_.clear(), EnergyFractionEm_SJ2_.clear(), EnergyFractionNeutralHadronic_SJ2_.clear(), EnergyFractionChargedHadronic_SJ2_.clear(), EnergyFractionNeutralEm_SJ2_.clear(), EnergyFractionChargedEm_SJ2_.clear(), EnergyFractionMuon_SJ2_.clear();
+
 double diSuperJet_E = 0, diSuperJet_px = 0,diSuperJet_py = 0,diSuperJet_pz =0;
 double diSuperJet_E_100 = 0, diSuperJet_px_100 = 0,diSuperJet_py_100 = 0,diSuperJet_pz_100 =0;
 if(_verbose)std::cout << "about to loop over superjets" << std::endl;
@@ -3669,19 +3804,182 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
   std::vector<fastjet::PseudoJet> boostedSuperJetPart;
 
   //boost particles in SuperJet to its COM frame
-  for(auto iP = iSJ->begin();iP != iSJ->end();iP++)
+  for(auto iP = iSJ->begin();iP != iSJ->end();iP++)  //tag pdgId, FJ->TLV->FJ happens in this loop
   {
     TLorentzVector iP_(iP->px(),iP->py(),iP->pz(),iP->E());
     iP_.Boost(-superJetpx/superJetE,-superJetpy/superJetE,-superJetpz/superJetE);
     boostedSuperJetPart.push_back(fastjet::PseudoJet(iP_.Px(),iP_.Py(),iP_.Pz(),iP_.E()));
+    boostedSuperJetPart.back().set_user_index(iP->user_index());
   }
 
   ///reclustering SuperJet that is now boosted into the MPP frame
-  double R = 0.4;
+  double R = 0.8;
   //fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R);
   fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R);
   fastjet::ClusterSequence cs_jet(boostedSuperJetPart, jet_def); 
   std::vector<fastjet::PseudoJet> jetsFJ_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.0));
+
+  //boostedSJ Lund and Nsubjettiness
+  double beta = 1.0;
+  double R0   = 0.8; // SuperJet reclustering radius
+
+  int fj_jet_count = 0;
+  for (const auto& fj_jet : jetsFJ_jet) {
+
+    // --- Skip empty jets
+    if (!fj_jet.has_constituents()) continue;
+
+    std::vector<fastjet::PseudoJet> CA8_constituents = fj_jet.constituents();	  
+
+    EnergyFractions ef = computeEnergyFractions(CA8_constituents, candsUnboosted, puppi_list, /*usePuppi=*/false);
+
+    //for (size_t i = 0; i < CA4_constituents.size(); ++i) {
+    //    fastjet::PseudoJet p = CA4_constituents.at(i);
+	//std::cout << "CA4 jet count = " << fj_jet_count << " , particle count = " << i << " , index = " << p.user_index() << " , pdgid = " << candsUnboosted.at(p.user_index()).pdgId() << " , energy = " << p.E() << " , energy/puppiweight = " << p.E()/puppi_list[p.user_index()] << std::endl;
+	
+    //}
+
+
+    //if (fj_jet.constituents().size() > 0) {
+	//int particle_count = 0;
+    	//for(auto Part = fj_jet.constituents().begin(); fj_jet != fj_jet.constituents().end(); Part++) {
+    	//	std::cout << "CA4 jet count = " << fj_jet_count << ", particle count = " << particle_count << " , index = " << Part->user_index() << " , pdgid = " << candsUnboosted.at(Part->user_index()).pdgId() << std::endl;
+	//whenever you have a std::vector, it is safer to use the at method than to use the raw index, for example you should always change v[index] to v.at(index)
+	//	particle_count++;
+	//}
+    //}
+
+
+    // --- Compute N-subjettiness ---
+    Nsubjettiness nSub1(1, OnePass_KT_Axes(), NormalizedMeasure(beta, R0));
+    Nsubjettiness nSub2(2, OnePass_KT_Axes(), NormalizedMeasure(beta, R0));
+    Nsubjettiness nSub3(3, OnePass_KT_Axes(), NormalizedMeasure(beta, R0));
+
+    double tau1_SJ = nSub1(fj_jet);
+    double tau2_SJ = nSub2(fj_jet);
+    double tau3_SJ = nSub3(fj_jet);
+    double tau21_SJ = (tau1_SJ > 0) ? tau2_SJ / tau1_SJ : -1;
+    double tau32_SJ = (tau2_SJ > 0) ? tau3_SJ / tau2_SJ : -1;
+    double CA8_mass_SJ = fj_jet.m();
+    double constituents = fj_jet.constituents().size();
+
+    if(nSuperJets == 0)  //SJ1
+    {
+       tau1_SJ1_.push_back(tau1_SJ);
+       tau2_SJ1_.push_back(tau2_SJ);
+       tau3_SJ1_.push_back(tau3_SJ);
+       tau21_SJ1_.push_back(tau21_SJ);
+       tau32_SJ1_.push_back(tau32_SJ);
+       CA8_mass_SJ1_.push_back(CA8_mass_SJ);
+       CA8_constituents_SJ1_.push_back(constituents);
+       totalE_SJ1_.push_back(ef.totalE);
+       totalMultiplicity_SJ1_.push_back(ef.totalMultiplicity);
+       chargedHadronEnergy_SJ1_.push_back(ef.chargedHadronEnergy);
+       neutralHadronEnergy_SJ1_.push_back(ef.neutralHadronEnergy);
+       chargedEmEnergy_SJ1_.push_back(ef.chargedEmEnergy);
+       neutralEmEnergy_SJ1_.push_back(ef.neutralEmEnergy);
+       photonEnergy_SJ1_.push_back(ef.photonEnergy);
+       electronEnergy_SJ1_.push_back(ef.electronEnergy);
+       muonEnergy_SJ1_.push_back(ef.muonEnergy);
+       chargedMuEnergy_SJ1_.push_back(ef.chargedMuEnergy);
+       chargedMultiplicity_SJ1_.push_back(ef.chargedMultiplicity);
+       neutralMultiplicity_SJ1_.push_back(ef.neutralMultiplicity);
+       HadronMultiplicity_SJ1_.push_back(ef.HadronMultiplicity);
+       chargedHadronMultiplicity_SJ1_.push_back(ef.chargedHadronMultiplicity);
+       neutralHadronMultiplicity_SJ1_.push_back(ef.neutralHadronMultiplicity);
+       EmMultiplicity_SJ1_.push_back(ef.EmMultiplicity);
+       chargedEmMultiplicity_SJ1_.push_back(ef.chargedEmMultiplicity);
+       neutralEmMultiplicity_SJ1_.push_back(ef.neutralEmMultiplicity);
+       photonMultiplicity_SJ1_.push_back(ef.photonMultiplicity);
+       electronMultiplicity_SJ1_.push_back(ef.electronMultiplicity);
+       muonMultiplicity_SJ1_.push_back(ef.muonMultiplicity);
+       EnergyFractionHadronic_SJ1_.push_back(ef.EnergyFractionHadronic);
+       EnergyFractionEm_SJ1_.push_back(ef.EnergyFractionEm);
+       EnergyFractionNeutralHadronic_SJ1_.push_back(ef.EnergyFractionNeutralHadronic);
+       EnergyFractionChargedHadronic_SJ1_.push_back(ef.EnergyFractionChargedHadronic);
+       EnergyFractionNeutralEm_SJ1_.push_back(ef.EnergyFractionNeutralEm);
+       EnergyFractionChargedEm_SJ1_.push_back(ef.EnergyFractionChargedEm);
+       EnergyFractionMuon_SJ1_.push_back(ef.EnergyFractionMuon);
+    }
+    else if(nSuperJets == 1) //SJ2
+    {
+       tau1_SJ2_.push_back(tau1_SJ);
+       tau2_SJ2_.push_back(tau2_SJ);
+       tau3_SJ2_.push_back(tau3_SJ);
+       tau21_SJ2_.push_back(tau21_SJ);
+       tau32_SJ2_.push_back(tau32_SJ);
+       CA8_mass_SJ2_.push_back(CA8_mass_SJ);
+       CA8_constituents_SJ2_.push_back(constituents);
+       totalE_SJ2_.push_back(ef.totalE);
+       totalMultiplicity_SJ2_.push_back(ef.totalMultiplicity);
+       chargedHadronEnergy_SJ2_.push_back(ef.chargedHadronEnergy);
+       neutralHadronEnergy_SJ2_.push_back(ef.neutralHadronEnergy);
+       chargedEmEnergy_SJ2_.push_back(ef.chargedEmEnergy);
+       neutralEmEnergy_SJ2_.push_back(ef.neutralEmEnergy);
+       photonEnergy_SJ2_.push_back(ef.photonEnergy);
+       electronEnergy_SJ2_.push_back(ef.electronEnergy);
+       muonEnergy_SJ2_.push_back(ef.muonEnergy);
+       chargedMuEnergy_SJ2_.push_back(ef.chargedMuEnergy);
+       chargedMultiplicity_SJ2_.push_back(ef.chargedMultiplicity);
+       neutralMultiplicity_SJ2_.push_back(ef.neutralMultiplicity);
+       HadronMultiplicity_SJ2_.push_back(ef.HadronMultiplicity);
+       chargedHadronMultiplicity_SJ2_.push_back(ef.chargedHadronMultiplicity);
+       neutralHadronMultiplicity_SJ2_.push_back(ef.neutralHadronMultiplicity);
+       EmMultiplicity_SJ2_.push_back(ef.EmMultiplicity);
+       chargedEmMultiplicity_SJ2_.push_back(ef.chargedEmMultiplicity);
+       neutralEmMultiplicity_SJ2_.push_back(ef.neutralEmMultiplicity);
+       photonMultiplicity_SJ2_.push_back(ef.photonMultiplicity);
+       electronMultiplicity_SJ2_.push_back(ef.electronMultiplicity);
+       muonMultiplicity_SJ2_.push_back(ef.muonMultiplicity);
+       EnergyFractionHadronic_SJ2_.push_back(ef.EnergyFractionHadronic);
+       EnergyFractionEm_SJ2_.push_back(ef.EnergyFractionEm);
+       EnergyFractionNeutralHadronic_SJ2_.push_back(ef.EnergyFractionNeutralHadronic);
+       EnergyFractionChargedHadronic_SJ2_.push_back(ef.EnergyFractionChargedHadronic);
+       EnergyFractionNeutralEm_SJ2_.push_back(ef.EnergyFractionNeutralEm);
+       EnergyFractionChargedEm_SJ2_.push_back(ef.EnergyFractionChargedEm);
+       EnergyFractionMuon_SJ2_.push_back(ef.EnergyFractionMuon);
+    }
+
+    // Debug printout for jets with tauN=0
+    /*
+    if (tau1_SJ < 1e-4 || tau2_SJ < 1e-4 || tau3_SJ < 1e-4 || tau21_SJ < 1e-4 || tau32_SJ < 1e-4) {
+       auto constituents = fj_jet.constituents();
+       std::cout << "SJ" << (nSuperJets + 1)
+                 << " has tau1 = " << tau1_SJ << ", tau2 = " << tau2_SJ << ", tau3 = " << tau3_SJ << ", tau21 = " << tau21_SJ << ", tau32 = " << tau32_SJ << ",  #constituents = " << constituents.size()
+                 << std::endl;
+       for (size_t ic = 0; ic < constituents.size(); ++ic) {
+         std::cout << "   constituent " << ic
+                   << " pT = " << constituents[ic].pt()
+                   << " eta = " << constituents[ic].eta()
+                   << " phi = " << constituents[ic].phi()
+                   << std::endl;
+       }
+    }
+    */
+
+    // --- Compute Lund declustering ---
+    fastjet::contrib::LundGenerator lundGen;
+    std::vector<fastjet::contrib::LundDeclustering> lund_decomp = lundGen(fj_jet);
+
+    std::vector<float> thisJet_dR, thisJet_kT;
+
+    for (const auto& emission : lund_decomp) {
+      thisJet_dR.push_back(emission.Delta());
+      thisJet_kT.push_back(emission.kt());
+    }
+    if(nSuperJets == 0)  //SJ1
+    {
+       boostedSJ1_lund_dR.push_back(thisJet_dR);
+       boostedSJ1_lund_kT.push_back(thisJet_kT);
+    }
+    else if(nSuperJets == 1) //SJ2
+    {
+       boostedSJ2_lund_dR.push_back(thisJet_dR);
+       boostedSJ2_lund_kT.push_back(thisJet_kT);
+    }
+  fj_jet_count++;
+  }
+
 
   double SJ_50_px = 0, SJ_50_py=0,SJ_50_pz=0,SJ_50_E=0;
   double SJ_70_px = 0, SJ_70_py=0,SJ_70_pz=0,SJ_70_E=0;

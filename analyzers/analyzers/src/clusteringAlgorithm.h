@@ -356,9 +356,11 @@ private:
    std::vector<std::vector<float>> jet_lund_dR;
    std::vector<std::vector<float>> jet_lund_kT;
 
-   //Boosted LUND
    std::vector<std::vector<float>> boosted_jet_lund_dR;
    std::vector<std::vector<float>> boosted_jet_lund_kT;
+
+   std::vector<std::vector<float>> boostedSJ1_lund_dR, boostedSJ2_lund_dR;
+   std::vector<std::vector<float>> boostedSJ1_lund_kT, boostedSJ2_lund_kT;
 
    //jet distribution
    double L_parallel;
@@ -368,6 +370,16 @@ private:
    //Nsubjettiness
    std::vector<double> tau1_, tau2_, tau3_, tau21_, tau32_;
    std::vector<double> tau1COM_, tau2COM_, tau3COM_, tau21COM_, tau32COM_;
+   std::vector<double> tau1_SJ1_, tau2_SJ1_, tau3_SJ1_, tau21_SJ1_, tau32_SJ1_, tau1_SJ2_, tau2_SJ2_, tau3_SJ2_, tau21_SJ2_, tau32_SJ2_;
+
+   //Energy Fraction, Multiplicity..
+   std::vector<double> totalE_SJ1_, totalMultiplicity_SJ1_, chargedHadronEnergy_SJ1_, neutralHadronEnergy_SJ1_, chargedEmEnergy_SJ1_, neutralEmEnergy_SJ1_, photonEnergy_SJ1_, electronEnergy_SJ1_, muonEnergy_SJ1_, chargedMuEnergy_SJ1_, chargedMultiplicity_SJ1_, neutralMultiplicity_SJ1_, HadronMultiplicity_SJ1_, chargedHadronMultiplicity_SJ1_, neutralHadronMultiplicity_SJ1_, EmMultiplicity_SJ1_, chargedEmMultiplicity_SJ1_, neutralEmMultiplicity_SJ1_, photonMultiplicity_SJ1_, electronMultiplicity_SJ1_, muonMultiplicity_SJ1_, EnergyFractionHadronic_SJ1_, EnergyFractionEm_SJ1_, EnergyFractionNeutralHadronic_SJ1_, EnergyFractionChargedHadronic_SJ1_, EnergyFractionNeutralEm_SJ1_, EnergyFractionChargedEm_SJ1_, EnergyFractionMuon_SJ1_;
+
+   std::vector<double> totalE_SJ2_, totalMultiplicity_SJ2_, chargedHadronEnergy_SJ2_, neutralHadronEnergy_SJ2_, chargedEmEnergy_SJ2_, neutralEmEnergy_SJ2_, photonEnergy_SJ2_, electronEnergy_SJ2_, muonEnergy_SJ2_, chargedMuEnergy_SJ2_, chargedMultiplicity_SJ2_, neutralMultiplicity_SJ2_, HadronMultiplicity_SJ2_, chargedHadronMultiplicity_SJ2_, neutralHadronMultiplicity_SJ2_, EmMultiplicity_SJ2_, chargedEmMultiplicity_SJ2_, neutralEmMultiplicity_SJ2_, photonMultiplicity_SJ2_, electronMultiplicity_SJ2_, muonMultiplicity_SJ2_, EnergyFractionHadronic_SJ2_, EnergyFractionEm_SJ2_, EnergyFractionNeutralHadronic_SJ2_, EnergyFractionChargedHadronic_SJ2_, EnergyFractionNeutralEm_SJ2_, EnergyFractionChargedEm_SJ2_, EnergyFractionMuon_SJ2_;
+
+
+   //SJ CA4 jets mass constituents
+   std::vector<double> CA8_mass_SJ1_, CA8_mass_SJ2_, CA8_constituents_SJ1_, CA8_constituents_SJ2_;
 
 };
 
