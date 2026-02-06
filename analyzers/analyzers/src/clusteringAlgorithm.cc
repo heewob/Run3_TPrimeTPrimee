@@ -7,6 +7,7 @@
 //_top_
 #include "clusteringAlgorithm.h"
 #include "EnergyFractions.h"
+#include "SecondaryVertexUtils.h"
 
 using namespace reco;
 using namespace correction;
@@ -160,6 +161,9 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
   //jecUnc_AK8 = new JetCorrectionUncertainty(JECUncert_AK8_path.fullPath().c_str());
 
   if(_verbose)std::cout << "Finished getting JetCorrectionUncertainty objects from text files." << std::endl;
+ 
+  pvToken_ = consumes<std::vector<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("pvSrc"));
+  svToken_ = consumes<std::vector<reco::VertexCompositePtrCandidate>>(iConfig.getParameter<edm::InputTag>("svSrc"));
 
   fatJetToken_ = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
   jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
@@ -339,7 +343,9 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
   ////////// init tree branches /////////
   ///////////////////////////////////////
 
-
+  tree->Branch("Tprime_energy", &Tprime_energy);
+  tree->Branch("Tprime_momentum", &Tprime_momentum);
+  tree->Branch("Tprime_pt", &Tprime_pt);
 
   tree->Branch("passesPFHT", &passesPFHT  , "passesPFHT/O");
   tree->Branch("passesPFJet", &passesPFJet  , "passesPFJet/O");
@@ -513,6 +519,29 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("EnergyFractionNeutralEm_SJ2", &EnergyFractionNeutralEm_SJ2_);
   tree->Branch("EnergyFractionChargedEm_SJ2", &EnergyFractionChargedEm_SJ2_);
   tree->Branch("EnergyFractionMuon_SJ2", &EnergyFractionMuon_SJ2_);
+
+  //subsuperjet lab frame info
+  tree->Branch("labeta_SJ1", &labeta_SJ1_);
+  tree->Branch("labphi_SJ1", &labphi_SJ1_);
+  tree->Branch("labeta_SJ2", &labeta_SJ2_);
+  tree->Branch("labphi_SJ2", &labphi_SJ2_);
+
+  //subsuperjet SV info
+  tree->Branch("SV_chi2", &SV_chi2_);
+  tree->Branch("SV_ndof", &SV_ndof_);
+  tree->Branch("SV_dlen", &SV_dlen_);
+  tree->Branch("SV_dlenSig", &SV_dlenSig_);
+  tree->Branch("SV_dxy", &SV_dxy_);
+  tree->Branch("SV_dxySig", &SV_dxySig_);
+  tree->Branch("SV_eta", &SV_eta_);
+  tree->Branch("SV_phi", &SV_phi_);
+  tree->Branch("SV_pt", &SV_pt_);
+  tree->Branch("SV_mass", &SV_mass_);
+  tree->Branch("SV_pAngle", &SV_pAngle_);
+  tree->Branch("SV_x", &SV_x_);
+  tree->Branch("SV_y", &SV_y_);
+  tree->Branch("SV_z", &SV_z_);
+  tree->Branch("SV_ntracks", &SV_ntracks_);
 
 
   if(includeAllBranches) // EXTRA tree branches to be included if needed
@@ -1690,6 +1719,36 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   edm::Handle< std::vector<reco::GenParticle> > genPartCollection; // this will be used several times throughout the code
 
+  ///////////////////////////////////////// 
+  ///////// Secondary Vertex info /////////
+  /////////////////////////////////////////
+
+  const auto& svs = iEvent.get(svToken_);
+  auto primaryVertices = iEvent.getHandle(pvToken_);
+  const reco::Vertex& pv = primaryVertices->front();
+  std::vector<SVInfo> svInfos = extractSecondaryVertices(svs, pv);
+
+ SV_chi2_.clear(), SV_ndof_.clear(), SV_dlen_.clear(), SV_dlenSig_.clear(), SV_dxy_.clear(), SV_dxySig_.clear(), SV_eta_.clear(), SV_phi_.clear(), SV_pt_.clear(), SV_mass_.clear(), SV_pAngle_.clear(), SV_x_.clear(), SV_y_.clear(), SV_z_.clear(), SV_ntracks_.clear();
+
+ for (const SVInfo& sv : svInfos) {
+
+  SV_chi2_.push_back(sv.chi2);
+  SV_dlen_.push_back(sv.dlen);
+  SV_dlenSig_.push_back(sv.dlenSig);
+  SV_dxy_.push_back(sv.dxy);
+  SV_dxySig_.push_back(sv.dxySig);
+  SV_eta_.push_back(sv.eta);
+  SV_phi_.push_back(sv.phi);
+  SV_pt_.push_back(sv.pt);
+  SV_mass_.push_back(sv.mass);
+  SV_pAngle_.push_back(sv.pAngle);
+  SV_x_.push_back(sv.x);
+  SV_y_.push_back(sv.y);
+  SV_z_.push_back(sv.z);
+  SV_ndof_.push_back(sv.ndof);
+  SV_ntracks_.push_back(sv.ntracks);
+}
+
 
   ////////////////////////////////// 
   ///////// Apply Triggers /////////
@@ -1698,7 +1757,7 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   edm::Handle<edm::TriggerResults> triggerBits;
   iEvent.getByToken(triggerBits_, triggerBits);
-
+  
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
 
   passesPFJet = false;
@@ -2581,7 +2640,7 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
       nfatjet_pre++;
     }
 
-    if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < AK8_Et_cut) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")//this is normal AK8 jet cut, I changed E cut 200 to 50
+    if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < AK8_Et_cut) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")//this is normal AK8 jet cut, I changed E cut 200 to 50 (preselection cut)
 
 
 
@@ -3003,6 +3062,10 @@ if( (runType.find("MC") != std::string::npos) || (runType.find("Tprime") != std:
 
   iEvent.getByToken(genPartToken_, genPartCollection);
 
+  Tprime_energy.clear();
+  Tprime_momentum.clear();
+  Tprime_pt.clear();
+
   for (auto iG = genPartCollection->begin(); iG != genPartCollection->end(); iG++)
   {
 
@@ -3125,6 +3188,13 @@ if( (runType.find("MC") != std::string::npos) || (runType.find("Tprime") != std:
     else if ((abs(iG->pdgId()) == Tprime_pdgid) && (iG->isLastCopy()))
     {
       nChi++;
+    }
+
+    if (abs(iG->pdgId()) == Tprime_pdgid) 
+    {
+      Tprime_momentum.push_back(std::sqrt(std::pow(iG->px(),2.0)+std::pow(iG->py(),2.0)+std::pow(iG->pz(),2.0)));
+      Tprime_energy.push_back(iG->energy());
+      Tprime_pt.push_back(iG->pt());
     }
 
     //processes
@@ -3303,7 +3373,7 @@ tau21COM_.clear();
 tau32COM_.clear();
 
 
-TVector3 totJetBeta = TVector3(tot_jet_px/tot_jet_E,tot_jet_py/tot_jet_E ,tot_jet_pz/tot_jet_E); //the total jets' lorentzs vector sum
+TVector3 BoostVectorMPP = TVector3(tot_jet_px/tot_jet_E,tot_jet_py/tot_jet_E ,tot_jet_pz/tot_jet_E); //the total jets' lorentzs vector sum
 
 for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {   //loop through each fatjets
   //std::cout<< "new jet start" <<std::endl;
@@ -3315,7 +3385,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {   //loop th
   double AK8_JEC_corr_factor = 1.0;
 
   double beta = 1.0; //angluar weighting parameter for Nsubjettiness
-  double R0 = 1.2; //characteristic jet radius (for boosted COM) used for Nsubjettiness and CA reclustering
+  double R0 = 0.8; //characteristic jet radius (for boosted COM) used for Nsubjettiness and CA reclustering
   if(doJEC)
   {
 
@@ -3347,7 +3417,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {   //loop th
   for(auto iC = Unboosted_particles.begin();iC != Unboosted_particles.end(); iC++)  //boost the particles in the fatjet
   {
     TLorentzVector iC_(iC->px(),iC->py(),iC->pz(),iC->energy());
-    iC_.Boost(-totJetBeta.X(),-totJetBeta.Y(),-totJetBeta.Z());
+    iC_.Boost(-BoostVectorMPP.X(),-BoostVectorMPP.Y(),-BoostVectorMPP.Z());
     Boosted_particles_TLV.push_back( iC_ );      //save it in TLV form
   }
 
@@ -3363,7 +3433,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {   //loop th
     continue;
   }
   //cluster consitituents with C/A (LUND requites C/A)
-  fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R0); //R=1.2 for COM particles chatGPT suggested
+  fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R0); //R=0.8 for COM particles chatGPT suggested
   fastjet::ClusterSequence cs_jet(Boosted_particles_fj, jet_def);
   std::vector<fastjet::PseudoJet> inclusive_jets = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)); //return a vector of jets sorted into decreasing energy with an energy cut of 0
   //fastjet::PseudoJet fj_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)).at(0);
@@ -3435,7 +3505,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {   //loop th
 
 if(_verbose)std::cout << "before cluster" << std::endl;
 /////calculate COM frame boost////////////////////////////////////////////////////////////////////?????///////////////
-//TVector3 totJetBeta = TVector3(tot_jet_px/tot_jet_E,tot_jet_py/tot_jet_E ,tot_jet_pz/tot_jet_E); //declared in boosted LUND section
+//TVector3 BoostVectorMPP = TVector3(tot_jet_px/tot_jet_E,tot_jet_py/tot_jet_E ,tot_jet_pz/tot_jet_E); //declared in boosted LUND section
 
 
 //////////boost all jet particles into MPP frame//////////////////////////////////////////////////////////////////////
@@ -3444,7 +3514,7 @@ double pxCOM = 0,pyCOM=0,pzCOM=0;
 for(auto iC = candsUnboosted.begin();iC != candsUnboosted.end(); iC++)    //tag pdgId, keeping same order so far 
 {
   TLorentzVector iC_(iC->px(),iC->py(),iC->pz(),iC->energy());
-  iC_.Boost(-totJetBeta.X(),-totJetBeta.Y(),-totJetBeta.Z());
+  iC_.Boost(-BoostVectorMPP.X(),-BoostVectorMPP.Y(),-BoostVectorMPP.Z());
   pxCOM+=iC_.Px();pyCOM+=iC_.Py();pzCOM+=iC_.Pz();
   candsBoostedTLV_.push_back( iC_ );
 
@@ -3615,7 +3685,7 @@ int lab_AK8_num = 0;
 for(auto iLabAK8 = selectedAK8_TLV.begin(); iLabAK8!=selectedAK8_TLV.end(); iLabAK8++)
 { 
   //abs(candJet.Angle(iJet->Vect()))
-  iLabAK8->Boost(-totJetBeta.X(),-totJetBeta.Y(),-totJetBeta.Z()); // boost jet to COM frame
+  iLabAK8->Boost(-BoostVectorMPP.X(),-BoostVectorMPP.Y(),-BoostVectorMPP.Z()); // boost jet to COM frame
   double minAngle = 99999;
   AK8_SJ_assignment[lab_AK8_num] = -999;
   for( auto iSJ_jet = negSuperJet.begin(); iSJ_jet!= negSuperJet.end();iSJ_jet++ )
@@ -3729,6 +3799,9 @@ tau1_SJ2_.clear(); tau2_SJ2_.clear(); tau3_SJ2_.clear(); tau21_SJ2_.clear(); tau
 
 totalE_SJ2_.clear(), totalMultiplicity_SJ2_.clear(), chargedHadronEnergy_SJ2_.clear(), neutralHadronEnergy_SJ2_.clear(), chargedEmEnergy_SJ2_.clear(), neutralEmEnergy_SJ2_.clear(), photonEnergy_SJ2_.clear(), electronEnergy_SJ2_.clear(), muonEnergy_SJ2_.clear(), chargedMuEnergy_SJ2_.clear(), chargedMultiplicity_SJ2_.clear(), neutralMultiplicity_SJ2_.clear(), HadronMultiplicity_SJ2_.clear(), chargedHadronMultiplicity_SJ2_.clear(), neutralHadronMultiplicity_SJ2_.clear(), EmMultiplicity_SJ2_.clear(), chargedEmMultiplicity_SJ2_.clear(), neutralEmMultiplicity_SJ2_.clear(), photonMultiplicity_SJ2_.clear(), electronMultiplicity_SJ2_.clear(), muonMultiplicity_SJ2_.clear(), EnergyFractionHadronic_SJ2_.clear(), EnergyFractionEm_SJ2_.clear(), EnergyFractionNeutralHadronic_SJ2_.clear(), EnergyFractionChargedHadronic_SJ2_.clear(), EnergyFractionNeutralEm_SJ2_.clear(), EnergyFractionChargedEm_SJ2_.clear(), EnergyFractionMuon_SJ2_.clear();
 
+labeta_SJ1_.clear(), labphi_SJ1_.clear(), labeta_SJ2_.clear(), labphi_SJ2_.clear();
+
+
 double diSuperJet_E = 0, diSuperJet_px = 0,diSuperJet_py = 0,diSuperJet_pz =0;
 double diSuperJet_E_100 = 0, diSuperJet_px_100 = 0,diSuperJet_py_100 = 0,diSuperJet_pz_100 =0;
 if(_verbose)std::cout << "about to loop over superjets" << std::endl;
@@ -3794,10 +3867,16 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
   superJet_mass[nSuperJets] = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));
 
   //saving pos and neg SJ mass
-  if (nSuperJets == 0)
-  {posSJ_mass = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));}
-  else if (nSuperJets == 1)
-  {negSJ_mass = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));}
+  TVector3 BoostVectorSJ1;
+  TVector3 BoostVectorSJ2;
+  if (nSuperJets == 0)  {
+	  posSJ_mass = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));
+          BoostVectorSJ1 = TVector3(superJetpx/superJetE, superJetpy/superJetE, superJetpz/superJetE);
+  }
+  else if (nSuperJets == 1)  {
+	  negSJ_mass = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));
+          BoostVectorSJ2 = TVector3(superJetpx/superJetE, superJetpy/superJetE, superJetpz/superJetE);
+  }
 
   TLorentzVector superJetTLV(superJetpx,superJetpy,superJetpz,superJetE);    //Lorentz vector representing jet axis -> now minimize the parallel momentum
 
@@ -3848,8 +3927,29 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
 	//	particle_count++;
 	//}
     //}
+    
+    // --- Compute lab frame eta/phi for SV matching later---
+    double labeta;
+    double labphi;
+    if(nSuperJets == 0)  //SJ1
+    {
+	    TLorentzVector SubsuperjetTLV(fj_jet.px(),fj_jet.py(),fj_jet.pz(),fj_jet.E());
+	    SubsuperjetTLV.Boost(BoostVectorSJ1.X(), BoostVectorSJ1.Y(), BoostVectorSJ1.Z()); //unboosted to MPP frame
+	    SubsuperjetTLV.Boost(BoostVectorMPP.X(), BoostVectorMPP.Y(), BoostVectorMPP.Z()); //unboosted to lab framie
+	    labeta = SubsuperjetTLV.Eta();
+	    labphi = SubsuperjetTLV.Phi();
+    }
+    else if(nSuperJets == 1) //SJ2
+    {
+	    TLorentzVector SubsuperjetTLV(fj_jet.px(),fj_jet.py(),fj_jet.pz(),fj_jet.E());
+            SubsuperjetTLV.Boost(BoostVectorSJ2.X(), BoostVectorSJ2.Y(), BoostVectorSJ2.Z()); //unboosted to MPP frame
+	    SubsuperjetTLV.Boost(BoostVectorMPP.X(), BoostVectorMPP.Y(), BoostVectorMPP.Z()); //unboosted to lab frame
+	    labeta = SubsuperjetTLV.Eta();
+            labphi = SubsuperjetTLV.Phi();
+    }
 
-
+    
+     
     // --- Compute N-subjettiness ---
     Nsubjettiness nSub1(1, OnePass_KT_Axes(), NormalizedMeasure(beta, R0));
     Nsubjettiness nSub2(2, OnePass_KT_Axes(), NormalizedMeasure(beta, R0));
@@ -3900,6 +4000,8 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
        EnergyFractionNeutralEm_SJ1_.push_back(ef.EnergyFractionNeutralEm);
        EnergyFractionChargedEm_SJ1_.push_back(ef.EnergyFractionChargedEm);
        EnergyFractionMuon_SJ1_.push_back(ef.EnergyFractionMuon);
+       labeta_SJ1_.push_back(labeta);
+       labphi_SJ1_.push_back(labphi);
     }
     else if(nSuperJets == 1) //SJ2
     {
@@ -3938,6 +4040,8 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
        EnergyFractionNeutralEm_SJ2_.push_back(ef.EnergyFractionNeutralEm);
        EnergyFractionChargedEm_SJ2_.push_back(ef.EnergyFractionChargedEm);
        EnergyFractionMuon_SJ2_.push_back(ef.EnergyFractionMuon);
+       labeta_SJ2_.push_back(labeta);
+       labphi_SJ2_.push_back(labphi);
     }
 
     // Debug printout for jets with tauN=0

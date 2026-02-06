@@ -104,6 +104,7 @@
 //#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 
+
 class clusteringAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
    explicit clusteringAnalyzer(const edm::ParameterSet&);
@@ -145,6 +146,9 @@ private:
    edm::EDGetTokenT< double > prefweightdown_token;
    edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
    edm::EDGetTokenT<double> m_rho_token;
+   edm::EDGetTokenT<std::vector<reco::Vertex>> pvToken_;
+   edm::EDGetTokenT<std::vector<reco::VertexCompositePtrCandidate>> svToken_;
+
 
    /*
    //Run3 CMSSW14 new API for JER resolution
@@ -196,6 +200,10 @@ private:
    int jetMultiplicity;
    int process;
 
+   //Tprime energy
+   std::vector<double> Tprime_energy;
+   std::vector<double> Tprime_momentum;
+   std::vector<double> Tprime_pt;
 
    //init event variables
    bool doJEC              = true;
@@ -352,6 +360,7 @@ private:
    std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK4;   // contains the correctors for each uncertainty source
    std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK8;   // contains the correctors for each uncertainty source
 
+
     //LUND
    std::vector<std::vector<float>> jet_lund_dR;
    std::vector<std::vector<float>> jet_lund_kT;
@@ -378,9 +387,15 @@ private:
    std::vector<double> totalE_SJ2_, totalMultiplicity_SJ2_, chargedHadronEnergy_SJ2_, neutralHadronEnergy_SJ2_, chargedEmEnergy_SJ2_, neutralEmEnergy_SJ2_, photonEnergy_SJ2_, electronEnergy_SJ2_, muonEnergy_SJ2_, chargedMuEnergy_SJ2_, chargedMultiplicity_SJ2_, neutralMultiplicity_SJ2_, HadronMultiplicity_SJ2_, chargedHadronMultiplicity_SJ2_, neutralHadronMultiplicity_SJ2_, EmMultiplicity_SJ2_, chargedEmMultiplicity_SJ2_, neutralEmMultiplicity_SJ2_, photonMultiplicity_SJ2_, electronMultiplicity_SJ2_, muonMultiplicity_SJ2_, EnergyFractionHadronic_SJ2_, EnergyFractionEm_SJ2_, EnergyFractionNeutralHadronic_SJ2_, EnergyFractionChargedHadronic_SJ2_, EnergyFractionNeutralEm_SJ2_, EnergyFractionChargedEm_SJ2_, EnergyFractionMuon_SJ2_;
 
 
-   //SJ CA4 jets mass constituents
+   //subSJ CA8 jets mass constituents
    std::vector<double> CA8_mass_SJ1_, CA8_mass_SJ2_, CA8_constituents_SJ1_, CA8_constituents_SJ2_;
 
+   //subSJ lab frame info
+   std::vector<double> labeta_SJ1_, labphi_SJ1_, labeta_SJ2_, labphi_SJ2_;
+
+   //subSJ secondary vertex info
+   std::vector<double> SV_chi2_, SV_dlen_, SV_dlenSig_, SV_dxy_, SV_dxySig_, SV_eta_, SV_phi_, SV_pt_, SV_mass_, SV_pAngle_, SV_x_, SV_y_, SV_z_;
+   std::vector<int> SV_ndof_, SV_ntracks_;
 };
 
 
@@ -417,8 +432,8 @@ const std::string clusteringAnalyzer::returnJECFile(std::string year, std::strin
       }
    }  
    // Summer19UL16APV_V9_MC/RegroupedV2_Summer19UL16APV_V9_MC_UncertaintySources_AK4PFchs.txt
-   if (data_type.find("data") != std::string::npos ) return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str();
-   else { return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str(); }
+   if (data_type.find("data") != std::string::npos ) return  ("Run3_TPrimeTprime/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str();
+   else { return  ("Run3_TPrimeTprime/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str(); }
 
 }
 
