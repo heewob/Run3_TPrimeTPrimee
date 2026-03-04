@@ -454,6 +454,13 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("tau21_SJ1", &tau21_SJ1_);
   tree->Branch("tau32_SJ1", &tau32_SJ1_);
   tree->Branch("CA8_mass_SJ1", &CA8_mass_SJ1_);
+  tree->Branch("CA8_eta_SJ1", &CA8_eta_SJ1_);
+  tree->Branch("CA8_phi_SJ1", &CA8_phi_SJ1_);
+  tree->Branch("CA8_px_SJ1", &CA8_px_SJ1_);
+  tree->Branch("CA8_py_SJ1", &CA8_py_SJ1_);
+  tree->Branch("CA8_pz_SJ1", &CA8_pz_SJ1_);
+  tree->Branch("CA8_pt_SJ1", &CA8_pt_SJ1_);
+  tree->Branch("CA8_E_SJ1", &CA8_E_SJ1_);
   tree->Branch("CA8_constituents_SJ1", &CA8_constituents_SJ1_);
   tree->Branch("totalE_SJ1", &totalE_SJ1_);
   tree->Branch("totalMultiplicity_SJ1", &totalMultiplicity_SJ1_);
@@ -490,6 +497,13 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("tau21_SJ2", &tau21_SJ2_);
   tree->Branch("tau32_SJ2", &tau32_SJ2_);
   tree->Branch("CA8_mass_SJ2", &CA8_mass_SJ2_);
+  tree->Branch("CA8_eta_SJ2", &CA8_eta_SJ2_);
+  tree->Branch("CA8_phi_SJ2", &CA8_phi_SJ2_);
+  tree->Branch("CA8_px_SJ2", &CA8_px_SJ2_);
+  tree->Branch("CA8_py_SJ2", &CA8_py_SJ2_);
+  tree->Branch("CA8_pz_SJ2", &CA8_pz_SJ2_);
+  tree->Branch("CA8_pt_SJ2", &CA8_pt_SJ2_);
+  tree->Branch("CA8_E_SJ2", &CA8_E_SJ2_);
   tree->Branch("CA8_constituents_SJ2", &CA8_constituents_SJ2_);
   tree->Branch("totalE_SJ2", &totalE_SJ2_);
   tree->Branch("totalMultiplicity_SJ2", &totalMultiplicity_SJ2_);
@@ -627,6 +641,8 @@ clusteringAnalyzer::clusteringAnalyzer(const edm::ParameterSet& iConfig):
 
 
   tree->Branch("superJet_mass", superJet_mass, "superJet_mass[nSuperJets]/D");
+  tree->Branch("posSJ_mass_after_boost", &posSJ_mass_after_boost, "posSJ_mass_after_boost/D");
+  tree->Branch("negSJ_mass_after_boost", &negSJ_mass_after_boost, "negSJ_mass_after_boost/D");
   tree->Branch("posSJ_mass", &posSJ_mass, "posSJ_mass/D");
   tree->Branch("negSJ_mass", &negSJ_mass, "negSJ_mass/D");
   tree->Branch("SJ_AK4_50_mass", SJ_AK4_50_mass, "SJ_AK4_50_mass[tot_nAK4_50]/D");    //mass of individual reclustered AK4 jets
@@ -928,7 +944,7 @@ bool clusteringAnalyzer::fillSJVars(std::map<std::string, float> &treeVars, std:
   double R = 0.4;
 
   //fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R);
-  fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R);
+  fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R);
   fastjet::ClusterSequence cs_jet(boostedSuperJetPart, jet_def); 
   std::vector<fastjet::PseudoJet> jetsFJ_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.0));
 
@@ -2417,7 +2433,11 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   //   }
 
 
-  if( totHT < 1200 ) return; // preselection cut
+  if( totHT < 1200 )
+  {
+	  didntpasstotHT++;
+	  return; // preselection cut
+  }
 
 
 
@@ -2640,7 +2660,7 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
       nfatjet_pre++;
     }
 
-    if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < AK8_Et_cut) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")//this is normal AK8 jet cut, I changed E cut 200 to 50 (preselection cut)
+    if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < AK8_Et_cut) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")//this is normal AK8 jet cut, I changed Et cut to be in cfg file (currently using 150) (preselection cut)
 
 
 
@@ -2760,7 +2780,17 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   //   }
   //commented out
 
-  if (  (nfatjets < 2) ||   (nHeavyAK8_pt300_M30 < 1) ) return;  // preselection cut
+  if (  (nfatjets < 2)  ) 
+  {
+  	didntpassnfatjets++;
+	return;  // preselection cut
+  }
+
+  if (  (nHeavyAK8_pt300_M30 < 1) )
+  {
+        didntpassnHeavyAK8_300_30 = 0;
+        return;  // preselection cut
+  }
 
 
 
@@ -3295,7 +3325,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {
   }
 
   //cluster consitituents with C/A (LUND requites C/A)
-  fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R0); //R=0.8 for AK8 jet definition
+  fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R0); //R=0.8 for AK8 jet definition
   fastjet::ClusterSequence cs_jet(fj_particles, jet_def);
   std::vector<fastjet::PseudoJet> inclusive_jets = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)); //return a vector of jets sorted into decreasing energy with an energy cut of 0
   //fastjet::PseudoJet fj_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)).at(0);
@@ -3433,7 +3463,7 @@ for (auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++) {   //loop th
     continue;
   }
   //cluster consitituents with C/A (LUND requites C/A)
-  fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R0); //R=0.8 for COM particles chatGPT suggested
+  fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R0); //R=0.8 for COM particles chatGPT suggested
   fastjet::ClusterSequence cs_jet(Boosted_particles_fj, jet_def);
   std::vector<fastjet::PseudoJet> inclusive_jets = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)); //return a vector of jets sorted into decreasing energy with an energy cut of 0
   //fastjet::PseudoJet fj_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.)).at(0);
@@ -3535,7 +3565,7 @@ for(auto iP=candsBoostedTLV_.begin();iP!=candsBoostedTLV_.end();iP++ )
 double R0 = 0.8;
 
 //fastjet::JetDefinition jet_def0(fastjet::antikt_algorithm, R0);  // alternate jet clustering algorithm
-fastjet::JetDefinition jet_def0(fastjet::cambridge_algorithm, R0);
+fastjet::JetDefinition jet_def0(fastjet::antikt_algorithm, R0);
 fastjet::ClusterSequence cs_jet0(candsBoostedPJ, jet_def0); 
 
 // shedding particles happens here -> can change this energy threshold, just changed it from 50. 
@@ -3677,6 +3707,8 @@ for(unsigned int iii = 0; iii < posSuperJet.size();iii++)
 {
   SJ1+=posSuperJet[iii];
 }
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /////////// Associating lab AK8 jets with one of the COM reclustered AK8 jets which gives assignment of lab AK8 jets to the superjets
@@ -3792,10 +3824,12 @@ boostedSJ1_lund_dR.clear(); boostedSJ1_lund_kT.clear();
 boostedSJ2_lund_dR.clear(); boostedSJ2_lund_kT.clear();
 
 tau1_SJ1_.clear(); tau2_SJ1_.clear(); tau3_SJ1_.clear(); tau21_SJ1_.clear(); tau32_SJ1_.clear(); CA8_mass_SJ1_.clear(); CA8_constituents_SJ1_.clear();
+CA8_eta_SJ1_.clear(), CA8_phi_SJ1_.clear(), CA8_px_SJ1_.clear(), CA8_py_SJ1_.clear(), CA8_pz_SJ1_.clear(), CA8_pt_SJ1_.clear(), CA8_E_SJ1_.clear();
 
 totalE_SJ1_.clear(), totalMultiplicity_SJ1_.clear(), chargedHadronEnergy_SJ1_.clear(), neutralHadronEnergy_SJ1_.clear(), chargedEmEnergy_SJ1_.clear(), neutralEmEnergy_SJ1_.clear(), photonEnergy_SJ1_.clear(), electronEnergy_SJ1_.clear(), muonEnergy_SJ1_.clear(), chargedMuEnergy_SJ1_.clear(), chargedMultiplicity_SJ1_.clear(), neutralMultiplicity_SJ1_.clear(), HadronMultiplicity_SJ1_.clear(), chargedHadronMultiplicity_SJ1_.clear(), neutralHadronMultiplicity_SJ1_.clear(), EmMultiplicity_SJ1_.clear(), chargedEmMultiplicity_SJ1_.clear(), neutralEmMultiplicity_SJ1_.clear(), photonMultiplicity_SJ1_.clear(), electronMultiplicity_SJ1_.clear(), muonMultiplicity_SJ1_.clear(), EnergyFractionHadronic_SJ1_.clear(), EnergyFractionEm_SJ1_.clear(), EnergyFractionNeutralHadronic_SJ1_.clear(), EnergyFractionChargedHadronic_SJ1_.clear(), EnergyFractionNeutralEm_SJ1_.clear(), EnergyFractionChargedEm_SJ1_.clear(), EnergyFractionMuon_SJ1_.clear();
 
 tau1_SJ2_.clear(); tau2_SJ2_.clear(); tau3_SJ2_.clear(); tau21_SJ2_.clear(); tau32_SJ2_.clear(); CA8_mass_SJ2_.clear(); CA8_constituents_SJ2_.clear();
+CA8_eta_SJ2_.clear(), CA8_phi_SJ2_.clear(), CA8_px_SJ2_.clear(), CA8_py_SJ2_.clear(), CA8_pz_SJ2_.clear(), CA8_pt_SJ2_.clear(), CA8_E_SJ2_.clear();
 
 totalE_SJ2_.clear(), totalMultiplicity_SJ2_.clear(), chargedHadronEnergy_SJ2_.clear(), neutralHadronEnergy_SJ2_.clear(), chargedEmEnergy_SJ2_.clear(), neutralEmEnergy_SJ2_.clear(), photonEnergy_SJ2_.clear(), electronEnergy_SJ2_.clear(), muonEnergy_SJ2_.clear(), chargedMuEnergy_SJ2_.clear(), chargedMultiplicity_SJ2_.clear(), neutralMultiplicity_SJ2_.clear(), HadronMultiplicity_SJ2_.clear(), chargedHadronMultiplicity_SJ2_.clear(), neutralHadronMultiplicity_SJ2_.clear(), EmMultiplicity_SJ2_.clear(), chargedEmMultiplicity_SJ2_.clear(), neutralEmMultiplicity_SJ2_.clear(), photonMultiplicity_SJ2_.clear(), electronMultiplicity_SJ2_.clear(), muonMultiplicity_SJ2_.clear(), EnergyFractionHadronic_SJ2_.clear(), EnergyFractionEm_SJ2_.clear(), EnergyFractionNeutralHadronic_SJ2_.clear(), EnergyFractionChargedHadronic_SJ2_.clear(), EnergyFractionNeutralEm_SJ2_.clear(), EnergyFractionChargedEm_SJ2_.clear(), EnergyFractionMuon_SJ2_.clear();
 
@@ -3804,6 +3838,8 @@ labeta_SJ1_.clear(), labphi_SJ1_.clear(), labeta_SJ2_.clear(), labphi_SJ2_.clear
 
 double diSuperJet_E = 0, diSuperJet_px = 0,diSuperJet_py = 0,diSuperJet_pz =0;
 double diSuperJet_E_100 = 0, diSuperJet_px_100 = 0,diSuperJet_py_100 = 0,diSuperJet_pz_100 =0;
+TLorentzVector SJ1_after_boost(0,0,0,0); //for calculating the SJ mass after boost
+TLorentzVector SJ2_after_boost(0,0,0,0);
 if(_verbose)std::cout << "about to loop over superjets" << std::endl;
 
 for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
@@ -3894,7 +3930,7 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
   ///reclustering SuperJet that is now boosted into the MPP frame
   double R = 0.8;
   //fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R);
-  fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R);
+  fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R);
   fastjet::ClusterSequence cs_jet(boostedSuperJetPart, jet_def); 
   std::vector<fastjet::PseudoJet> jetsFJ_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.0));
 
@@ -3903,6 +3939,8 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
   double R0   = 0.8; // SuperJet reclustering radius
 
   int fj_jet_count = 0;
+
+
   for (const auto& fj_jet : jetsFJ_jet) {
 
     // --- Skip empty jets
@@ -3948,7 +3986,17 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
             labphi = SubsuperjetTLV.Phi();
     }
 
-    
+    if(nSuperJets == 0)
+    {
+	    TLorentzVector SubsuperjetTLV(fj_jet.px(),fj_jet.py(),fj_jet.pz(),fj_jet.E());
+	    SJ1_after_boost+=SubsuperjetTLV;
+    }
+
+    else if(nSuperJets == 1)
+    {
+	    TLorentzVector SubsuperjetTLV(fj_jet.px(),fj_jet.py(),fj_jet.pz(),fj_jet.E());
+	    SJ2_after_boost+=SubsuperjetTLV;
+    }
      
     // --- Compute N-subjettiness ---
     Nsubjettiness nSub1(1, OnePass_KT_Axes(), NormalizedMeasure(beta, R0));
@@ -3961,6 +4009,13 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
     double tau21_SJ = (tau1_SJ > 0) ? tau2_SJ / tau1_SJ : -1;
     double tau32_SJ = (tau2_SJ > 0) ? tau3_SJ / tau2_SJ : -1;
     double CA8_mass_SJ = fj_jet.m();
+    double CA8_eta_SJ = fj_jet.eta();
+    double CA8_phi_SJ = fj_jet.phi();
+    double CA8_px_SJ = fj_jet.px();
+    double CA8_py_SJ = fj_jet.py();
+    double CA8_pz_SJ = fj_jet.pz();
+    double CA8_pt_SJ = fj_jet.pt();
+    double CA8_E_SJ = fj_jet.E();
     double constituents = fj_jet.constituents().size();
 
     if(nSuperJets == 0)  //SJ1
@@ -3971,6 +4026,13 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
        tau21_SJ1_.push_back(tau21_SJ);
        tau32_SJ1_.push_back(tau32_SJ);
        CA8_mass_SJ1_.push_back(CA8_mass_SJ);
+       CA8_eta_SJ1_.push_back(CA8_eta_SJ);
+       CA8_phi_SJ1_.push_back(CA8_phi_SJ);
+       CA8_px_SJ1_.push_back(CA8_px_SJ);
+       CA8_py_SJ1_.push_back(CA8_py_SJ);
+       CA8_pz_SJ1_.push_back(CA8_pz_SJ);
+       CA8_pt_SJ1_.push_back(CA8_pt_SJ);
+       CA8_E_SJ1_.push_back(CA8_E_SJ);
        CA8_constituents_SJ1_.push_back(constituents);
        totalE_SJ1_.push_back(ef.totalE);
        totalMultiplicity_SJ1_.push_back(ef.totalMultiplicity);
@@ -4011,6 +4073,13 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
        tau21_SJ2_.push_back(tau21_SJ);
        tau32_SJ2_.push_back(tau32_SJ);
        CA8_mass_SJ2_.push_back(CA8_mass_SJ);
+       CA8_eta_SJ2_.push_back(CA8_eta_SJ);
+       CA8_phi_SJ2_.push_back(CA8_phi_SJ);
+       CA8_px_SJ2_.push_back(CA8_px_SJ);
+       CA8_py_SJ2_.push_back(CA8_py_SJ);
+       CA8_pz_SJ2_.push_back(CA8_pz_SJ);
+       CA8_pt_SJ2_.push_back(CA8_pt_SJ);
+       CA8_E_SJ2_.push_back(CA8_E_SJ);
        CA8_constituents_SJ2_.push_back(constituents);
        totalE_SJ2_.push_back(ef.totalE);
        totalMultiplicity_SJ2_.push_back(ef.totalMultiplicity);
@@ -4084,6 +4153,9 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
   fj_jet_count++;
   }
 
+  posSJ_mass_after_boost = SJ1_after_boost.M();
+  negSJ_mass_after_boost = SJ2_after_boost.M();
+
 
   double SJ_50_px = 0, SJ_50_py=0,SJ_50_pz=0,SJ_50_E=0;
   double SJ_70_px = 0, SJ_70_py=0,SJ_70_pz=0,SJ_70_E=0;
@@ -4151,8 +4223,6 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
 
       SJ_nAK4_100[nSuperJets]++; 
     }
-
-    if (SJ_nAK4_100[nSuperJets] < 1) return;  //preselection cut
 
     if(iPJ->E()>125)
     {
@@ -4240,6 +4310,12 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
     tot_mpp_AK4++;
   }
 
+  if (SJ_nAK4_100[nSuperJets] < 1)
+    {
+            didntpassnSubSJ100++;
+            //return;  //preselection cut
+    }
+
   SJ_mass_50[nSuperJets]= sqrt(pow(SJ_50_E,2)-pow(SJ_50_px,2)-pow(SJ_50_py,2)-pow(SJ_50_pz,2));
   SJ_mass_70[nSuperJets]= sqrt(pow(SJ_70_E,2)-pow(SJ_70_px,2)-pow(SJ_70_py,2)-pow(SJ_70_pz,2));
   SJ_mass_100[nSuperJets]= sqrt(pow(SJ_100_E,2)-pow(SJ_100_px,2)-pow(SJ_100_py,2)-pow(SJ_100_pz,2));
@@ -4267,11 +4343,6 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
 //posSuperJet_mass = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));
 
 
-
-
-
-
-
 if(_verbose)std::cout << "calculating disuperjet masses" <<std::endl;
 diSuperJet_mass = sqrt(pow(diSuperJet_E,2)-pow(diSuperJet_px,2)-pow(diSuperJet_py,2)-pow(diSuperJet_pz,2));
 diSuperJet_mass_100 = sqrt(pow(diSuperJet_E_100,2)-pow(diSuperJet_px_100,2)-pow(diSuperJet_py_100,2)-pow(diSuperJet_pz_100,2));
@@ -4283,7 +4354,19 @@ if(_verbose)std::cout << "Filling the tree" <<std::endl;
 tree->Fill();
 
 if(_verbose)std::cout << " -----------------event end -----------------" << std::endl;
-}   
+
+}
+
+void clusteringAnalyzer::endJob() {
+    // This runs ONCE at the very end.
+    // Place your finalization logic here.
+    std::cout << "total event processed " << eventnum << std::endl;
+    std::cout << "event didn't pass totHT cut " << didntpasstotHT << std::endl;
+    std::cout << "event didn't pass nfatjets cut " << didntpassnfatjets << std::endl;
+    std::cout << "event didn't pass nHeavyAK8_300_30 cut " << didntpassnHeavyAK8_300_30 << std::endl;
+    std::cout << "event didn't pass SJ_nAK4_100 cut " << didntpassnSubSJ100 << std::endl;
+    std::cout << "Processing finished." << std::endl;
+}
 
 DEFINE_FWK_MODULE(clusteringAnalyzer);
 //_bottom_

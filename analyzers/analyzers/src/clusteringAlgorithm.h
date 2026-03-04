@@ -111,6 +111,7 @@ public:
 private:
 
    virtual void analyze(const edm::Event&, const edm::EventSetup&);
+   void endJob() override;
    double calcMPP(TLorentzVector superJetTLV ); 
    const static bool isMatchedtoSJ(std::vector<TLorentzVector> superJetTLVs, TLorentzVector candJet); 
    bool fillSJVars(std::map<std::string, float> &treeVars, std::vector<fastjet::PseudoJet> iSJ, int nSuperJets);
@@ -181,7 +182,12 @@ private:
 
    bool doPUID = false;
    bool doPDF = false;
-   int eventnum = 0;
+   int eventnum = 0;  //total number of event processed
+   int didntpasstotHT = 0; //number of events that didn't pass totHT cut
+   int didntpassnfatjets = 0; //number of events that didn't pass nfatjet cut
+   int didntpassnHeavyAK8_300_30 = 0; //number of events that didn't pass nHeavyAK8_300_30 cut
+   int didntpassnSubSJ100 = 0; //number of events that didn't pass SJ_nAK4_100 cut
+
    int nAK4 = 0;
    int nfatjets = 0;
    int raw_nfatjets;
@@ -221,6 +227,7 @@ private:
    int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
    double SJ_mass_50[100], SJ_mass_70[100],SJ_mass_100[100],superJet_mass[100],SJ_AK4_50_mass[100],SJ_AK4_70_mass[100];
+   double posSJ_mass_after_boost,negSJ_mass_after_boost;
    double posSJ_mass,negSJ_mass;
    double SJ_mass_125[100], SJ_mass_150[100], SJ_mass_200[100],SJ_mass_300[100],SJ_mass_400[100],SJ_mass_600[100],SJ_mass_800[100],SJ_mass_1000[100];   
    double AK4_mass[100], AK4_E[500], leadAK8_mass[10];
@@ -389,6 +396,10 @@ private:
 
    //subSJ CA8 jets mass constituents
    std::vector<double> CA8_mass_SJ1_, CA8_mass_SJ2_, CA8_constituents_SJ1_, CA8_constituents_SJ2_;
+
+   //subSJ 4 vector and eta phi
+   std::vector<double> CA8_px_SJ1_, CA8_px_SJ2_, CA8_py_SJ1_, CA8_py_SJ2_, CA8_pz_SJ1_, CA8_pz_SJ2_, CA8_pt_SJ1_, CA8_pt_SJ2_, CA8_E_SJ1_, CA8_E_SJ2_, CA8_eta_SJ1_, CA8_eta_SJ2_, CA8_phi_SJ1_, CA8_phi_SJ2_;
+
 
    //subSJ lab frame info
    std::vector<double> labeta_SJ1_, labphi_SJ1_, labeta_SJ2_, labphi_SJ2_;
