@@ -2706,17 +2706,19 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     jet_eta[nfatjets] = corrJet.eta();
     jet_mass[nfatjets] = corrJet.mass();
 
+    double jec = iJet->pt() / iJet->correctedP4("Uncorrected").pt(); //saving jec factor to apply it to the particles
+
     // save selected AK8 jet particles for use in calculating the thrust axis
     for (unsigned int iii=0; iii<iJet->numberOfDaughters();iii++)   // get all jet particles
     {
       const reco::Candidate* iJ = iJet->daughter(iii);
       const pat::PackedCandidate* candJetbegin = (pat::PackedCandidate*) iJ;
       double puppiweight = candJetbegin->puppiWeight();
-      candsUnboosted.push_back(LeafCandidate(iJ->charge(), Particle::LorentzVector(AK8_sf_total*puppiweight*iJ->px(), AK8_sf_total*puppiweight*iJ->py(), AK8_sf_total*puppiweight*iJ->pz(), AK8_sf_total*puppiweight*iJ->energy()), iJ->vertex(), iJ->pdgId(), iJ->status()));   //tag pdgId
+      candsUnboosted.push_back(LeafCandidate(iJ->charge(), Particle::LorentzVector(jec*AK8_sf_total*puppiweight*iJ->px(), jec*AK8_sf_total*puppiweight*iJ->py(), jec*AK8_sf_total*puppiweight*iJ->pz(), jec*AK8_sf_total*puppiweight*iJ->energy()), iJ->vertex(), iJ->pdgId(), iJ->status()));   //tag pdgId
       puppi_list.push_back(puppiweight);
       //std::cout<< "puppiweight = " << puppiweight << std::endl;
       //std::cout << "pdgid = " << iJet->daughter(iii)->pdgId() << std::endl;
-      tot_jet_px+=AK8_sf_total*puppiweight*candJetbegin->px();tot_jet_py+=AK8_sf_total*puppiweight*candJetbegin->py();tot_jet_pz+=AK8_sf_total*puppiweight*candJetbegin->pz();tot_jet_E+=AK8_sf_total*puppiweight*candJetbegin->energy();
+      tot_jet_px+=jec*AK8_sf_total*puppiweight*candJetbegin->px();tot_jet_py+=jec*AK8_sf_total*puppiweight*candJetbegin->py();tot_jet_pz+=jec*AK8_sf_total*puppiweight*candJetbegin->pz();tot_jet_E+=jec*AK8_sf_total*puppiweight*candJetbegin->energy();
     }
     if(nfatjets < 4)
     {
