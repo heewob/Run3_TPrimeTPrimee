@@ -498,7 +498,7 @@ const bool clusteringAnalyzer::isgoodjet(const float eta, const float NHF,const 
   //  return false;
   //}
 
-  if ( (abs(eta) > 2.4) || (NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
+  if ( (abs(eta) > 2.4) || (NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<=0.) || (CHM<=0) || (MUF > 0.8) || (CEMF > 0.8)) 
   {
     return false;  //new isgoodjet to match john's passJetID
   }
