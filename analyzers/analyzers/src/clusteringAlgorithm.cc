@@ -1730,6 +1730,8 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   //lumiBlockNum = aux.luminosityBlock();
   eventNumber       = aux.event();
 
+  //std::cout << eventNumber << std::endl; //print
+
   if(_verbose)std::cout << " -----------------Starting Event ----------------- " << std::endl;
   eventnum++;
 
@@ -2440,7 +2442,7 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   }
 
 
-
+  //std::cout << totHT << std::endl; //print
 
   ///////////////////////////////////
   ////// Calculate dijet masses /////
@@ -2547,6 +2549,9 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
 
     if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 25.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.4 )) continue;   //don't even bother with these jets
+
+    //std::cout << "fatjet- mass: " << iJet->mass() << " pt: " << iJet->pt() << " energy: "<< iJet->energy() << std::endl; //print
+
 
     double AK8_sf_total = 1.0;     // this scales jet/particle 4-vectors, compounds all scale factors
 
@@ -2661,6 +2666,8 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     }
 
     if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < AK8_Et_cut) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")//this is normal AK8 jet cut, I changed Et cut to be in cfg file (currently using 150) (preselection cut)
+
+    //std::cout << "corrJet- mass: " << corrJet.mass() << " pt: "<< corrJet.pt() << " energy: "<< corrJet.energy() << std::endl; //print
 
 
 
@@ -2780,6 +2787,8 @@ void clusteringAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   //   }
   //commented out
+  
+  //std::cout << "nfatjets " << nfatjets << std::endl; //print
 
   if (  (nfatjets < 2)  ) 
   {
@@ -3598,15 +3607,18 @@ if( ((negSuperJet.size() < 1 ) || (posSuperJet.size()<1) )  )
 TLorentzVector SJ1(0,0,0,0);
 TLorentzVector SJ2(0,0,0,0);
 
+for(unsigned int iii = 0; iii < posSuperJet.size();iii++)
+{
+  //std::cout << "posSuperjet AK8 - mass: " << posSuperJet[iii].M() << " pt: "<< posSuperJet[iii].Pt() << " energy: "<< posSuperJet[iii].Energy() << std::endl; //print
+  SJ1+=posSuperJet[iii];
+}
+
 for(unsigned int iii = 0; iii < negSuperJet.size();iii++)
 {
+  //std::cout << "negSuperjet AK8 - mass: " << negSuperJet[iii].M() << " pt: "<< negSuperJet[iii].Pt() << " energy: "<< negSuperJet[iii].Energy() << std::endl; //print
   SJ2+=negSuperJet[iii];
 }
 
-for(unsigned int iii = 0; iii < posSuperJet.size();iii++)
-{
-  SJ1+=posSuperJet[iii];
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -3807,12 +3819,15 @@ for(auto iSJ = superJets.begin();iSJ!= superJets.end();iSJ++)
   TVector3 BoostVectorSJ2;
   if (nSuperJets == 0)  {
 	  posSJ_mass = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));
+	  //std::cout << "pos SJ mass " << posSJ_mass << std::endl; //print
           BoostVectorSJ1 = TVector3(superJetpx/superJetE, superJetpy/superJetE, superJetpz/superJetE);
   }
   else if (nSuperJets == 1)  {
 	  negSJ_mass = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));
+	  //std::cout << "neg SJ mass " << negSJ_mass << std::endl; //print
           BoostVectorSJ2 = TVector3(superJetpx/superJetE, superJetpy/superJetE, superJetpz/superJetE);
   }
+
 
   TLorentzVector superJetTLV(superJetpx,superJetpy,superJetpz,superJetE);    //Lorentz vector representing jet axis -> now minimize the parallel momentum
 

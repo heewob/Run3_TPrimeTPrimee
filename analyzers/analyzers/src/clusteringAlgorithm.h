@@ -490,12 +490,17 @@ const bool clusteringAnalyzer::isgoodjet(const float eta, const float NHF,const 
 // checks AK8 jet (tight) ID
 const bool clusteringAnalyzer::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
 {
-  if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
-  else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
+  //if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
+  //else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
 
-  if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
+  //if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
+  //{
+  //  return false;
+  //}
+
+  if ( (abs(eta) > 2.4) || (NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
   {
-    return false;
+    return false;  //new isgoodjet to match john's passJetID
   }
   else{ return true;}
 
