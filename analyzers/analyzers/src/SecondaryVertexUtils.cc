@@ -14,7 +14,7 @@ std::vector<SVInfo> extractSecondaryVertices(
 
     SVInfo info;
 
-    info.chi2 = sv.vertexChi2();
+    info.chi2 = sv.vertexNormalizedChi2(); //https://github.com/cms-sw/cmssw/blob/master/DataFormats/Candidate/interface/VertexCompositePtrCandidate.h#L77 normalized chi2 is chi/ndof
     info.ndof = sv.vertexNdof();
 
     // 3D decay length
