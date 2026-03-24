@@ -405,8 +405,8 @@ private:
    std::vector<double> labeta_SJ1_, labphi_SJ1_, labeta_SJ2_, labphi_SJ2_;
 
    //subSJ secondary vertex info
-   std::vector<double> SV_chi2_, SV_dlen_, SV_dlenSig_, SV_dxy_, SV_dxySig_, SV_eta_, SV_phi_, SV_pt_, SV_mass_, SV_pAngle_, SV_x_, SV_y_, SV_z_;
-   std::vector<int> SV_ndof_, SV_ntracks_;
+   std::vector<double> SV_chi2_, SV_dlen_, SV_dlenSig_, SV_dxy_, SV_dxySig_, SV_eta_, SV_phi_, SV_pt_, SV_mass_, SV_pAngle_, SV_x_, SV_y_, SV_z_, SV_ndof_;
+   std::vector<int> SV_ntracks_;
 };
 
 
